@@ -12,8 +12,17 @@ datasource db {
   provider = "sqlite"
 }
 
+enum Role {
+  Admin
+  Recruiter
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String   @default("")
+  password  String
+  role      Role     @default(Recruiter)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
