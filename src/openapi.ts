@@ -6,6 +6,7 @@ export function buildOpenApiConfig(): Omit<OpenAPIObject, 'paths'> {
     .setTitle('TalentLens API')
     .setDescription('REST API for the TalentLens recruiting platform')
     .setVersion('1.0')
+    .addTag('login', 'Authentication')
     .addTag('users', 'Company user accounts')
     .build();
 }

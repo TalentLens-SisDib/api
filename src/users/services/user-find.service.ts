@@ -3,8 +3,21 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '../../generated/prisma/client.js';
+import { Prisma, User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+
+const credentialsSelect = {
+  id: true,
+  name: true,
+  email: true,
+  password: true,
+  role: true,
+  companyId: true,
+} as const;
+
+export type UserCredentials = Prisma.UserGetPayload<{
+  select: typeof credentialsSelect;
+}>;
 
 @Injectable()
 export class UserFindService {
@@ -22,6 +35,17 @@ export class UserFindService {
     }
 
     return user;
+  }
+
+  findByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  findCredentialsByEmail(email: string): Promise<UserCredentials | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+      select: credentialsSelect,
+    });
   }
 
   async assertCompanyExists(companyId: number): Promise<void> {

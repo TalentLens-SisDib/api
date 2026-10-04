@@ -194,6 +194,44 @@
           "users"
         ]
       }
+    },
+    "/login": {
+      "post": {
+        "operationId": "LoginController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The signed access token and its metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Invalid email or password"
+          }
+        },
+        "summary": "Exchange email and password for a Bearer token",
+        "tags": [
+          "login"
+        ]
+      }
     }
   },
   "info": {
@@ -203,6 +241,10 @@
     "contact": {}
   },
   "tags": [
+    {
+      "name": "login",
+      "description": "Authentication"
+    },
     {
       "name": "users",
       "description": "Company user accounts"
@@ -350,6 +392,50 @@
             "example": 1
           }
         }
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address registered for the account",
+            "format": "email",
+            "example": "recruiter@talentlens.dev"
+          },
+          "password": {
+            "type": "string",
+            "description": "Plain text password, compared against the stored hash",
+            "example": "recruiter123"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Signed JWT to send as `Authorization: Bearer <token>`",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Token lifetime in seconds",
+            "example": 3600
+          }
+        },
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn"
+        ]
       }
     }
   }

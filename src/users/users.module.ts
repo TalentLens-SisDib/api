@@ -13,5 +13,6 @@ import { UsersController } from './users.controller.js';
     UserEditService,
     UserDeleteService,
   ],
+  exports: [UserFindService],
 })
 export class UsersModule {}
