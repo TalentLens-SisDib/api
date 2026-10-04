@@ -1,0 +1,356 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All users, ordered by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List all users",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created user, without the password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation or references an unknown companyId"
+          },
+          "409": {
+            "description": "The email is already taken"
+          }
+        },
+        "summary": "Create a user",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User identifier",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid integer"
+          },
+          "404": {
+            "description": "No user exists with that id"
+          }
+        },
+        "summary": "Get a single user by id",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User identifier",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated user, without the password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation or references an unknown companyId"
+          },
+          "404": {
+            "description": "No user exists with that id"
+          },
+          "409": {
+            "description": "The email is already taken"
+          }
+        },
+        "summary": "Update the provided fields of a user",
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User identifier",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The user was deleted"
+          },
+          "400": {
+            "description": "The id is not a valid integer"
+          },
+          "404": {
+            "description": "No user exists with that id"
+          }
+        },
+        "summary": "Delete a user",
+        "tags": [
+          "users"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "TalentLens API",
+    "description": "REST API for the TalentLens recruiting platform",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "users",
+      "description": "Company user accounts"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "Role": {
+        "type": "string",
+        "enum": [
+          "Admin",
+          "Recruiter"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "email": {
+            "type": "string",
+            "example": "ada.admin@talentlens.dev"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ada Admin"
+          },
+          "role": {
+            "example": "Recruiter",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "companyId": {
+            "type": "number",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "companyId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Unique email address used to sign in",
+            "format": "email",
+            "example": "ada.admin@talentlens.dev",
+            "maxLength": 255
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name. Defaults to an empty string when omitted",
+            "maxLength": 255,
+            "example": "Ada Admin"
+          },
+          "password": {
+            "type": "string",
+            "description": "Plain text password. Stored as an argon2id hash and never returned",
+            "minLength": 8,
+            "maxLength": 128,
+            "example": "supersecret"
+          },
+          "role": {
+            "description": "Defaults to Recruiter when omitted",
+            "example": "Recruiter",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "companyId": {
+            "type": "number",
+            "description": "Identifier of the company the user belongs to",
+            "minimum": 1,
+            "example": 1
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "companyId"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "New unique email address",
+            "format": "email",
+            "example": "ada.admin@talentlens.dev",
+            "maxLength": 255
+          },
+          "name": {
+            "type": "string",
+            "description": "New display name",
+            "maxLength": 255,
+            "example": "Ada Admin"
+          },
+          "password": {
+            "type": "string",
+            "description": "New plain text password. Re-hashed with argon2id and never returned",
+            "minLength": 8,
+            "maxLength": 128,
+            "example": "anothersecret"
+          },
+          "role": {
+            "description": "New role",
+            "example": "Admin",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "companyId": {
+            "type": "number",
+            "description": "Identifier of the company the user belongs to",
+            "minimum": 1,
+            "example": 1
+          }
+        }
+      }
+    }
+  }
+}
