@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
@@ -23,8 +19,11 @@ export type UserCredentials = Prisma.UserGetPayload<{
 export class UserFindService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<User[]> {
-    return this.prisma.user.findMany({ orderBy: { id: 'asc' } });
+  findAllByCompany(companyId: number): Promise<User[]> {
+    return this.prisma.user.findMany({
+      where: { companyId },
+      orderBy: { id: 'asc' },
+    });
   }
 
   async findById(id: number): Promise<User> {
@@ -46,16 +45,5 @@ export class UserFindService {
       where: { email },
       select: credentialsSelect,
     });
-  }
-
-  async assertCompanyExists(companyId: number): Promise<void> {
-    const company = await this.prisma.company.findUnique({
-      where: { id: companyId },
-      select: { id: true },
-    });
-
-    if (company === null) {
-      throw new BadRequestException(`Company with id ${companyId} not found`);
-    }
   }
 }

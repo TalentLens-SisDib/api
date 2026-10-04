@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { AuthPayload } from '../auth/auth-payload.js';
+import { JWT_TTL_SECONDS } from '../auth/jwt.config.js';
 import { verifyPassword } from '../common/password.js';
 import { UserFindService } from '../users/services/user-find.service.js';
-import { AuthPayload } from './auth-payload.js';
 import { LoginDto } from './dto/login.dto.js';
 import { LoginResponseDto } from './dto/login-response.dto.js';
-import { JWT_TTL_SECONDS } from './jwt.config.js';
 
 @Injectable()
 export class LoginService {

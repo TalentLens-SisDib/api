@@ -7,6 +7,15 @@ export function buildOpenApiConfig(): Omit<OpenAPIObject, 'paths'> {
     .setDescription('REST API for the TalentLens recruiting platform')
     .setVersion('1.0')
     .addTag('login', 'Authentication')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Access token returned by POST /login',
+      },
+      'bearer',
+    )
     .addTag('users', 'Company user accounts')
     .build();
 }

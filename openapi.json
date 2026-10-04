@@ -21,7 +21,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "All users, ordered by id",
+            "description": "Users belonging to the company of the caller",
             "content": {
               "application/json": {
                 "schema": {
@@ -32,14 +32,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
           }
         },
-        "summary": "List all users",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List the users of the caller company",
         "tags": [
           "users"
         ]
       },
       "post": {
+        "description": "The user is always created in the company of the caller",
         "operationId": "UsersController_create",
         "parameters": [],
         "requestBody": {
@@ -64,12 +73,20 @@
             }
           },
           "400": {
-            "description": "The payload failed validation or references an unknown companyId"
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
           },
           "409": {
             "description": "The email is already taken"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create a user",
         "tags": [
           "users"
@@ -78,6 +95,7 @@
     },
     "/users/{id}": {
       "get": {
+        "description": "Allowed for the caller own account, or for any user of the same company when the caller is an admin",
         "operationId": "UsersController_findOne",
         "parameters": [
           {
@@ -105,16 +123,28 @@
           "400": {
             "description": "The id is not a valid integer"
           },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not read that user"
+          },
           "404": {
             "description": "No user exists with that id"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Get a single user by id",
         "tags": [
           "users"
         ]
       },
       "patch": {
+        "description": "Allowed for the caller own account, or for any user of the same company when the caller is an admin",
         "operationId": "UsersController_update",
         "parameters": [
           {
@@ -150,7 +180,13 @@
             }
           },
           "400": {
-            "description": "The payload failed validation or references an unknown companyId"
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not edit that user"
           },
           "404": {
             "description": "No user exists with that id"
@@ -159,12 +195,18 @@
             "description": "The email is already taken"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update the provided fields of a user",
         "tags": [
           "users"
         ]
       },
       "delete": {
+        "description": "Allowed for the caller own account, or for any user of the same company when the caller is an admin",
         "operationId": "UsersController_remove",
         "parameters": [
           {
@@ -185,10 +227,21 @@
           "400": {
             "description": "The id is not a valid integer"
           },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not delete that user"
+          },
           "404": {
             "description": "No user exists with that id"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete a user",
         "tags": [
           "users"
@@ -252,6 +305,14 @@
   ],
   "servers": [],
   "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Access token returned by POST /login"
+      }
+    },
     "schemas": {
       "Role": {
         "type": "string",
@@ -339,18 +400,11 @@
                 "$ref": "#/components/schemas/Role"
               }
             ]
-          },
-          "companyId": {
-            "type": "number",
-            "description": "Identifier of the company the user belongs to",
-            "minimum": 1,
-            "example": 1
           }
         },
         "required": [
           "email",
-          "password",
-          "companyId"
+          "password"
         ]
       },
       "UpdateUserDto": {
@@ -384,12 +438,6 @@
                 "$ref": "#/components/schemas/Role"
               }
             ]
-          },
-          "companyId": {
-            "type": "number",
-            "description": "Identifier of the company the user belongs to",
-            "minimum": 1,
-            "example": 1
           }
         }
       },

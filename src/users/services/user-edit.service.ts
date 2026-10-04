@@ -1,9 +1,11 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+import { AuthPayload } from '../../auth/auth-payload.js';
 import { hashPassword } from '../../common/password.js';
 import { Prisma, User } from '../../generated/prisma/client.js';
 import { isUniqueConstraintViolation } from '../../prisma/prisma-error.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UpdateUserDto } from '../dto/update-user.dto.js';
+import { assertCanManageUser } from '../user-access.js';
 import { UserFindService } from './user-find.service.js';
 
 @Injectable()
@@ -13,8 +15,13 @@ export class UserEditService {
     private readonly userFindService: UserFindService,
   ) {}
 
-  async update(id: number, dto: UpdateUserDto): Promise<User> {
-    await this.userFindService.findById(id);
+  async update(
+    requester: AuthPayload,
+    id: number,
+    dto: UpdateUserDto,
+  ): Promise<User> {
+    const target = await this.userFindService.findById(id);
+    assertCanManageUser(requester, target);
 
     const data: Prisma.UserUncheckedUpdateInput = {};
 
@@ -28,11 +35,6 @@ export class UserEditService {
 
     if (dto.role !== undefined) {
       data.role = dto.role;
-    }
-
-    if (dto.companyId !== undefined) {
-      await this.userFindService.assertCompanyExists(dto.companyId);
-      data.companyId = dto.companyId;
     }
 
     if (dto.password !== undefined) {

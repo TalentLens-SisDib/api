@@ -2,11 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsEnum,
-  IsInt,
   IsOptional,
   IsString,
   MaxLength,
-  Min,
   MinLength,
 } from 'class-validator';
 import { Role } from '../../generated/prisma/client.js';
@@ -53,13 +51,4 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
-
-  @ApiProperty({
-    description: 'Identifier of the company the user belongs to',
-    minimum: 1,
-    example: 1,
-  })
-  @IsInt()
-  @Min(1)
-  companyId!: number;
 }
