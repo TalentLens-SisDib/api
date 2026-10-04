@@ -1,5 +1,5 @@
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import * as argon2 from "argon2";
+import { hashPassword } from "../src/common/password.js";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 
 const adapter = new PrismaBetterSqlite3({
@@ -7,13 +7,6 @@ const adapter = new PrismaBetterSqlite3({
 });
 
 const prisma = new PrismaClient({ adapter });
-
-const ARGON2_OPTIONS = {
-  type: argon2.argon2id,
-  memoryCost: 19456,
-  timeCost: 2,
-  parallelism: 1,
-} as const;
 
 const companies = [
   { name: "TalentLens Labs" },
@@ -66,7 +59,7 @@ async function main() {
 
   for (const user of users) {
     const companyId = companyIds.get(user.company)!;
-    const password = await argon2.hash(user.password, ARGON2_OPTIONS);
+    const password = await hashPassword(user.password);
     await prisma.user.upsert({
       where: { email: user.email },
       update: {
