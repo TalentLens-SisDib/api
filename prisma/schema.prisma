@@ -17,6 +17,15 @@ enum Role {
   Recruiter
 }
 
+model Company {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  users User[]
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -25,4 +34,8 @@ model User {
   role      Role     @default(Recruiter)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  companyId Int
+  company   Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
 }
