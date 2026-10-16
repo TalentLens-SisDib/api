@@ -22,6 +22,7 @@ model Company {
   name      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  jobOpenings JobOpening[]
 
   users User[]
 }
@@ -36,6 +37,90 @@ model User {
   updatedAt DateTime @default(now()) @updatedAt
   companyId Int
   company   Company  @relation(fields: [companyId], references: [id])
+  jobOpenings JobOpening[]
 
   @@index([companyId])
+}
+
+model JobOpening {
+  id           String                  @id @default(uuid())
+  name         String
+  description  String
+  expectedWage Decimal                 
+  
+  companyId    Int 
+  company      Company                 @relation(fields: [companyId], references: [id])
+  userId       Int
+  user         User                    @relation(fields: [userId], references: [id])
+  
+  requirements JobOpeningRequirement[]
+
+  jobApplications JobApplication[]
+}
+
+model Requirement {
+  id          String                  @id @default(uuid())
+  name        String
+  
+  jobOpenings JobOpeningRequirement[]
+
+  profileSkills ProfileSkill[]
+}
+
+model JobOpeningRequirement {
+  jobOpeningId  String
+  jobOpening    JobOpening  @relation(fields: [jobOpeningId], references: [id])
+  
+  requirementId String
+  requirement   Requirement @relation(fields: [requirementId], references: [id])
+  
+  // Flag solicitada na tabela pivô
+  isRequired    Boolean
+
+  // Chave primária composta garantindo a unicidade da combinação
+  @@id([jobOpeningId, requirementId])
+}
+
+model ApplicantProfile {
+  id                    String               @id @default(uuid())
+  name                  String
+  description           String?
+  
+  skills                ProfileSkill[]       // Skills ligadas à tabela de Requirements
+  applications          JobApplication[]     // Vagas de emprego às quais se candidatou
+  
+  educationalBackground Education[]
+}
+
+model Education {
+  id           String    @id @default(uuid())
+  institution  String    // Nome da escola/faculdade
+  degree       String    // Curso / Graduação
+  startDate    DateTime
+  endDate      DateTime? // Nulo se ainda estiver cursando
+  
+  profileId    String
+  profile      ApplicantProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model ProfileSkill {
+  profileId     String
+  profile       ApplicantProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  requirementId String
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, requirementId])
+}
+
+model JobApplication {
+  profileId    String
+  profile      ApplicantProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  jobOpeningId String
+  jobOpening   JobOpening @relation(fields: [jobOpeningId], references: [id], onDelete: Cascade)
+  
+  appliedAt    DateTime   @default(now()) // Metadado útil: data da candidatura
+
+  @@id([profileId, jobOpeningId])
 }
