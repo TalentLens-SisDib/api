@@ -1,0 +1,490 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Users belonging to the company of the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List the users of the caller company",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "description": "The user is always created in the company of the caller",
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created user, without the password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "409": {
+            "description": "The email is already taken"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a user",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "description": "Allowed for the caller own account, or for any user of the same company when the caller is an admin",
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User identifier",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid integer"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not read that user"
+          },
+          "404": {
+            "description": "No user exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a single user by id",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "description": "Allowed for the caller own account, or for any user of the same company when the caller is an admin",
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User identifier",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated user, without the password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not edit that user"
+          },
+          "404": {
+            "description": "No user exists with that id"
+          },
+          "409": {
+            "description": "The email is already taken"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update the provided fields of a user",
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "description": "Allowed for the caller own account, or for any user of the same company when the caller is an admin",
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User identifier",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The user was deleted"
+          },
+          "400": {
+            "description": "The id is not a valid integer"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not delete that user"
+          },
+          "404": {
+            "description": "No user exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a user",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/login": {
+      "post": {
+        "operationId": "LoginController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The signed access token and its metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Invalid email or password"
+          }
+        },
+        "summary": "Exchange email and password for a Bearer token",
+        "tags": [
+          "login"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "TalentLens API",
+    "description": "REST API for the TalentLens recruiting platform",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "login",
+      "description": "Authentication"
+    },
+    {
+      "name": "users",
+      "description": "Company user accounts"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Access token returned by POST /login"
+      }
+    },
+    "schemas": {
+      "Role": {
+        "type": "string",
+        "enum": [
+          "Admin",
+          "Recruiter"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "email": {
+            "type": "string",
+            "example": "ada.admin@talentlens.dev"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ada Admin"
+          },
+          "role": {
+            "example": "Recruiter",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "companyId": {
+            "type": "number",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "companyId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Unique email address used to sign in",
+            "format": "email",
+            "example": "ada.admin@talentlens.dev",
+            "maxLength": 255
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name. Defaults to an empty string when omitted",
+            "maxLength": 255,
+            "example": "Ada Admin"
+          },
+          "password": {
+            "type": "string",
+            "description": "Plain text password. Stored as an argon2id hash and never returned",
+            "minLength": 8,
+            "maxLength": 128,
+            "example": "supersecret"
+          },
+          "role": {
+            "description": "Defaults to Recruiter when omitted",
+            "example": "Recruiter",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "New unique email address",
+            "format": "email",
+            "example": "ada.admin@talentlens.dev",
+            "maxLength": 255
+          },
+          "name": {
+            "type": "string",
+            "description": "New display name",
+            "maxLength": 255,
+            "example": "Ada Admin"
+          },
+          "password": {
+            "type": "string",
+            "description": "New plain text password. Re-hashed with argon2id and never returned",
+            "minLength": 8,
+            "maxLength": 128,
+            "example": "anothersecret"
+          },
+          "role": {
+            "description": "New role",
+            "example": "Admin",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          }
+        }
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address registered for the account",
+            "format": "email",
+            "example": "recruiter@talentlens.dev"
+          },
+          "password": {
+            "type": "string",
+            "description": "Plain text password, compared against the stored hash",
+            "example": "recruiter123"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Signed JWT to send as `Authorization: Bearer <token>`",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Token lifetime in seconds",
+            "example": 3600
+          }
+        },
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn"
+        ]
+      }
+    }
+  }
+}
