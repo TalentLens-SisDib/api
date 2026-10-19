@@ -47,6 +47,8 @@ model JobOpening {
   name         String
   description  String
   expectedWage Decimal                 
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @default(now()) @updatedAt
   
   companyId    Int 
   company      Company                 @relation(fields: [companyId], references: [id])
@@ -58,13 +60,17 @@ model JobOpening {
   jobApplications JobApplication[]
 }
 
-model Requirement {
+model Skill {
   id          String                  @id @default(uuid())
   name        String
+  description String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @default(now()) @updatedAt
   
   jobOpenings JobOpeningRequirement[]
 
   profileSkills ProfileSkill[]
+	@@map("Requirement")
 }
 
 model JobOpeningRequirement {
@@ -72,7 +78,7 @@ model JobOpeningRequirement {
   jobOpening    JobOpening  @relation(fields: [jobOpeningId], references: [id])
   
   requirementId String
-  requirement   Requirement @relation(fields: [requirementId], references: [id])
+  requirement   Skill @relation(fields: [requirementId], references: [id])
   
   // Flag solicitada na tabela pivô
   isRequired    Boolean
@@ -85,6 +91,8 @@ model ApplicantProfile {
   id                    String               @id @default(uuid())
   name                  String
   description           String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @default(now()) @updatedAt
   
   skills                ProfileSkill[]       // Skills ligadas à tabela de Requirements
   applications          JobApplication[]     // Vagas de emprego às quais se candidatou
@@ -108,7 +116,7 @@ model ProfileSkill {
   profile       ApplicantProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
   requirementId String
-  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  requirement   Skill @relation(fields: [requirementId], references: [id], onDelete: Cascade)
 
   @@id([profileId, requirementId])
 }
