@@ -2,14 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, ApplicantProfile } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UpdateProfileDto } from '../dto/update-profile.dto.js';
-import { ProfileSkillDto } from '../dto/create-profile.dto.js';
 import { ProfileFindService } from './profile-find.service.js';
+import { SkillsService } from './skills.service.js';
 
 @Injectable()
 export class ProfileEditService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly profileFindService: ProfileFindService,
+    private readonly skillsService: SkillsService,
   ) {}
 
   async update(
@@ -32,10 +33,11 @@ export class ProfileEditService {
         });
 
         if (skills.length > 0) {
+          const skillRecords = await this.skillsService.upsertSkills(tx, skills);
           await tx.profileSkill.createMany({
-            data: skills.map((skill: ProfileSkillDto) => ({
+            data: skillRecords.map((skill) => ({
               profileId: id,
-              requirementId: skill.skillId,
+              requirementId: skill.id,
             })),
           });
         }

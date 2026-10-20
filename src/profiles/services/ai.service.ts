@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProfileDto, ProfileSkillDto } from '../dto/create-profile.dto.js';
+import { CreateProfileDto } from '../dto/create-profile.dto.js';
 
 @Injectable()
 export class AiService {
@@ -12,7 +12,7 @@ export class AiService {
     return {
       name: file.originalname.replace('.pdf', ''),
       description: `Profile created from CV: ${file.originalname}`,
-      skills: [] as ProfileSkillDto[],
+      skills: ['TypeScript', 'React', 'Node.js'],
     };
   }
 }
