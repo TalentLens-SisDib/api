@@ -9,8 +9,11 @@ import {
   Patch,
   Post,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBadRequestResponse,
@@ -101,6 +104,27 @@ export class ProfilesController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileResponseDto> {
     const profile = await this.profileCreationService.create(dto);
+    res.setHeader('Location', `/profiles/${profile.id}`);
+    return this.transformProfile(profile);
+  }
+
+  @Post('upload-cv')
+  @UseInterceptors(FileInterceptor('cv'))
+  @ApiOperation({ summary: 'Upload a PDF CV and create an applicant profile' })
+  @ApiCreatedResponse({
+    description: 'The created profile from CV',
+    type: ProfileResponseDto,
+  })
+  @ApiBadRequestResponse({ description: 'Invalid file or failed to process CV' })
+  async uploadCv(
+    @CurrentUser() requester: AuthPayload,
+    @UploadedFile() file: Express.Multer.File,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ProfileResponseDto> {
+    if (!file || file.mimetype !== 'application/pdf') {
+      throw new Error('Only PDF files are allowed');
+    }
+    const profile = await this.profileCreationService.createFromCv(file);
     res.setHeader('Location', `/profiles/${profile.id}`);
     return this.transformProfile(profile);
   }
