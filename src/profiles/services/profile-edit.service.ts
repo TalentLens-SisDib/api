@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, ApplicantProfile } from '../../generated/prisma/client.js';
+import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UpdateProfileDto } from '../dto/update-profile.dto.js';
+import { ProfileWithRelations } from '../profile-types.js';
 import { ProfileFindService } from './profile-find.service.js';
 import { SkillsService } from './skills.service.js';
 
@@ -16,10 +17,10 @@ export class ProfileEditService {
   async update(
     id: string,
     dto: UpdateProfileDto,
-  ): Promise<ApplicantProfile & { skills: Array<{ requirement: { id: string; name: string; description: string | null } }> }> {
+  ): Promise<ProfileWithRelations> {
     await this.profileFindService.findById(id);
 
-    const { skills, ...updateData } = dto;
+    const { skills, educationalBackground, ...updateData } = dto;
 
     return await this.prisma.$transaction(async (tx) => {
       await tx.applicantProfile.update({
@@ -38,6 +39,21 @@ export class ProfileEditService {
             data: skillRecords.map((skill) => ({
               profileId: id,
               requirementId: skill.id,
+            })),
+          });
+        }
+      }
+
+      if (educationalBackground !== undefined) {
+        await tx.education.deleteMany({ where: { profileId: id } });
+
+        if (educationalBackground.length > 0) {
+          await tx.education.createMany({
+            data: educationalBackground.map(({ startDate, endDate, ...education }) => ({
+              ...education,
+              startDate: new Date(startDate),
+              endDate: endDate ? new Date(endDate) : null,
+              profileId: id,
             })),
           });
         }

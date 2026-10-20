@@ -112,3 +112,17 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Create a candidate profile from a CV
+
+The authenticated `POST /profiles/upload-cv` endpoint accepts one PDF as multipart form data under the field name `cv`. The file must be a valid PDF and no larger than 5 MB. The AI parser returns the structured profile, and the API saves the profile, extracted skills, and any education records in one database transaction. The response contains the created profile and its saved education and skills.
+
+```bash
+curl -X POST http://localhost:3000/profiles/upload-cv \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "cv=@./candidate.pdf;type=application/pdf"
+```
+
+The AI result follows the `CreateProfileDto` shape: `name` is required; `description`, `skills`, and `educationalBackground` are optional. Each education entry contains `institution`, `degree`, an ISO `startDate`, and an optional ISO `endDate` (or `null` when the course is ongoing). Invalid AI output is rejected before any profile is saved. The configured provider currently returns name, description, and skills; it must also emit `educationalBackground` for education to be populated from CVs.
+
+Swagger documents the multipart field and response at `http://localhost:3000/docs`.
