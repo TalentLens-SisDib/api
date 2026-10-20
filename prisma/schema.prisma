@@ -38,6 +38,7 @@ model User {
   companyId Int
   company   Company  @relation(fields: [companyId], references: [id])
   jobOpenings JobOpening[]
+  interviews Interview[]
 
   @@index([companyId])
 }
@@ -48,7 +49,7 @@ model JobOpening {
   description  String
   expectedWage Decimal                 
   createdAt    DateTime                @default(now())
-  updatedAt    DateTime                @default(now()) @updatedAt
+  updatedAt   DateTime                @default(now()) @updatedAt
   
   companyId    Int 
   company      Company                 @relation(fields: [companyId], references: [id])
@@ -56,8 +57,24 @@ model JobOpening {
   user         User                    @relation(fields: [userId], references: [id])
   
   requirements JobOpeningRequirement[]
-
+  steps        Step[]
   jobApplications JobApplication[]
+}
+
+model Step {
+  id            String      @id @default(uuid())
+  name          String
+  description   String?
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now()) @updatedAt
+  
+  jobOpeningId  String
+  jobOpening    JobOpening  @relation(fields: [jobOpeningId], references: [id], onDelete: Cascade)
+  
+  interviews    Interview[]
+  
+  @@unique([jobOpeningId, order])
 }
 
 model Skill {
@@ -131,4 +148,20 @@ model JobApplication {
   appliedAt    DateTime   @default(now()) // Metadado útil: data da candidatura
 
   @@id([profileId, jobOpeningId])
+}
+
+model Interview {
+  id            String    @id @default(uuid())
+  transcript    String
+  keyTakeaways  String    @default("[]") // JSON array of strings, max 255 chars each
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  stepId        String
+  step          Step      @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, stepId])
 }
