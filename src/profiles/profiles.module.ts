@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module.js';
 import { SkillsModule } from './skills.module.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { AiService } from './services/ai.service.js';
 import { ProfileCreationService } from './services/profile-creation.service.js';
 import { ProfileDeleteService } from './services/profile-delete.service.js';
 import { ProfileEditService } from './services/profile-edit.service.js';
@@ -13,6 +14,7 @@ import { ProfilesController } from './profiles.controller.js';
   controllers: [ProfilesController],
   providers: [
     JwtAuthGuard,
+    AiService,
     ProfileFindService,
     ProfileCreationService,
     ProfileEditService,
