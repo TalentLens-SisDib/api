@@ -7,5 +7,9 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    env: {
+      JWT_SECRET: 'e2e-only-secret-do-not-use-in-production',
+      DATABASE_URL: 'file::memory:',
+    },
   },
 });

@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ApplicantProfile } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { ProfileWithRelations } from '../profile-types.js';
 
 @Injectable()
 export class ProfileFindService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<ApplicantProfile[]> {
+  findAll(): Promise<ProfileWithRelations[]> {
     return this.prisma.applicantProfile.findMany({
       include: {
         skills: {
@@ -25,7 +25,7 @@ export class ProfileFindService {
     });
   }
 
-  async findById(id: string): Promise<ApplicantProfile & { skills: Array<{ requirement: { id: string; name: string; description: string | null } }> }> {
+  async findById(id: string): Promise<ProfileWithRelations> {
     const profile = await this.prisma.applicantProfile.findUnique({
       where: { id },
       include: {
