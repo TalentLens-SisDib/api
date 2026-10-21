@@ -285,6 +285,1254 @@
           "login"
         ]
       }
+    },
+    "/skills": {
+      "get": {
+        "operationId": "SkillsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of all skills",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SkillResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all skills",
+        "tags": [
+          "skills"
+        ]
+      },
+      "post": {
+        "operationId": "SkillsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSkillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created skill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "409": {
+            "description": "A skill with this name already exists"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a skill",
+        "tags": [
+          "skills"
+        ]
+      }
+    },
+    "/skills/{id}": {
+      "get": {
+        "operationId": "SkillsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Skill identifier",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested skill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No skill exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a single skill by id",
+        "tags": [
+          "skills"
+        ]
+      },
+      "patch": {
+        "operationId": "SkillsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Skill identifier",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSkillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated skill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No skill exists with that id"
+          },
+          "409": {
+            "description": "A skill with this name already exists"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update the provided fields of a skill",
+        "tags": [
+          "skills"
+        ]
+      },
+      "delete": {
+        "operationId": "SkillsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Skill identifier",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The skill was deleted"
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No skill exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a skill",
+        "tags": [
+          "skills"
+        ]
+      }
+    },
+    "/job-openings": {
+      "get": {
+        "operationId": "JobOpeningsController_findAll",
+        "parameters": [
+          {
+            "name": "mine",
+            "required": false,
+            "in": "query",
+            "description": "Filter to only show current user's job openings",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of job openings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JobOpeningResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List job openings for the caller's company",
+        "tags": [
+          "job-openings"
+        ]
+      },
+      "post": {
+        "operationId": "JobOpeningsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJobOpeningDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created job opening",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOpeningResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a job opening",
+        "tags": [
+          "job-openings"
+        ]
+      }
+    },
+    "/job-openings/{id}": {
+      "get": {
+        "operationId": "JobOpeningsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested job opening",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOpeningResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not read that job opening"
+          },
+          "404": {
+            "description": "No job opening exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a single job opening by id",
+        "tags": [
+          "job-openings"
+        ]
+      },
+      "patch": {
+        "operationId": "JobOpeningsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateJobOpeningDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated job opening",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOpeningResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not edit that job opening"
+          },
+          "404": {
+            "description": "No job opening exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update the provided fields of a job opening",
+        "tags": [
+          "job-openings"
+        ]
+      },
+      "delete": {
+        "operationId": "JobOpeningsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The job opening was deleted"
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not delete that job opening"
+          },
+          "404": {
+            "description": "No job opening exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a job opening",
+        "tags": [
+          "job-openings"
+        ]
+      }
+    },
+    "/profiles": {
+      "get": {
+        "operationId": "ProfilesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of all applicant profiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all applicant profiles",
+        "tags": [
+          "profiles"
+        ]
+      },
+      "post": {
+        "operationId": "ProfilesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an applicant profile",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/profiles/{id}": {
+      "get": {
+        "operationId": "ProfilesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Profile identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No profile exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a single applicant profile by id",
+        "tags": [
+          "profiles"
+        ]
+      },
+      "patch": {
+        "operationId": "ProfilesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Profile identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No profile exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update the provided fields of an applicant profile",
+        "tags": [
+          "profiles"
+        ]
+      },
+      "delete": {
+        "operationId": "ProfilesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Profile identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The profile was deleted"
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No profile exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an applicant profile",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/profiles/upload-cv": {
+      "post": {
+        "operationId": "ProfilesController_uploadCv",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The created profile from CV",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid file or failed to process CV"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload a PDF CV and create an applicant profile",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/job-openings/{jobOpeningId}/steps": {
+      "get": {
+        "operationId": "StepsController_findAll",
+        "parameters": [
+          {
+            "name": "jobOpeningId",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of steps ordered by order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StepResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The jobOpeningId is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all steps for a job opening",
+        "tags": [
+          "steps"
+        ]
+      },
+      "post": {
+        "operationId": "StepsController_create",
+        "parameters": [
+          {
+            "name": "jobOpeningId",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStepDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created step",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StepResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation or step order already exists"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a step for a job opening",
+        "tags": [
+          "steps"
+        ]
+      }
+    },
+    "/job-openings/{jobOpeningId}/steps/{id}": {
+      "get": {
+        "operationId": "StepsController_findOne",
+        "parameters": [
+          {
+            "name": "jobOpeningId",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Step identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested step",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StepResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No step exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a single step by id",
+        "tags": [
+          "steps"
+        ]
+      },
+      "patch": {
+        "operationId": "StepsController_update",
+        "parameters": [
+          {
+            "name": "jobOpeningId",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Step identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStepDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated step",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StepResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation or step order already exists"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No step exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a step",
+        "tags": [
+          "steps"
+        ]
+      },
+      "delete": {
+        "operationId": "StepsController_remove",
+        "parameters": [
+          {
+            "name": "jobOpeningId",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Step identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The step was deleted"
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No step exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a step",
+        "tags": [
+          "steps"
+        ]
+      }
+    },
+    "/steps/{stepId}/interviews": {
+      "get": {
+        "operationId": "InterviewsController_findAll",
+        "parameters": [
+          {
+            "name": "stepId",
+            "required": true,
+            "in": "path",
+            "description": "Step identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "my",
+            "required": false,
+            "in": "query",
+            "description": "Filter to only current user interviews",
+            "schema": {
+              "example": "true",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of interviews",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InterviewResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The stepId is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all interviews for a step (or all interviews for current user)",
+        "tags": [
+          "interviews"
+        ]
+      },
+      "post": {
+        "operationId": "InterviewsController_create",
+        "parameters": [
+          {
+            "name": "stepId",
+            "required": true,
+            "in": "path",
+            "description": "Step identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInterviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created interview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation or interview already exists for this user and step"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an interview for a step (current user)",
+        "tags": [
+          "interviews"
+        ]
+      }
+    },
+    "/steps/{stepId}/interviews/{id}": {
+      "get": {
+        "operationId": "InterviewsController_findOne",
+        "parameters": [
+          {
+            "name": "stepId",
+            "required": true,
+            "in": "path",
+            "description": "Step identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Interview identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested interview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No interview exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a single interview by id",
+        "tags": [
+          "interviews"
+        ]
+      },
+      "patch": {
+        "operationId": "InterviewsController_update",
+        "parameters": [
+          {
+            "name": "stepId",
+            "required": true,
+            "in": "path",
+            "description": "Step identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Interview identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInterviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated interview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No interview exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an interview (only owner)",
+        "tags": [
+          "interviews"
+        ]
+      },
+      "delete": {
+        "operationId": "InterviewsController_remove",
+        "parameters": [
+          {
+            "name": "stepId",
+            "required": true,
+            "in": "path",
+            "description": "Step identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Interview identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The interview was deleted"
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No interview exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an interview (only owner)",
+        "tags": [
+          "interviews"
+        ]
+      }
     }
   },
   "info": {
@@ -484,6 +1732,580 @@
           "tokenType",
           "expiresIn"
         ]
+      },
+      "SkillResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "example": "TypeScript"
+          },
+          "description": {
+            "type": "object",
+            "example": "Strongly typed JavaScript for large-scale applications"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateSkillDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "TypeScript"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the skill",
+            "maxLength": 500,
+            "example": "Strongly typed JavaScript for large-scale applications"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSkillDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New name of the skill",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "TypeScript"
+          },
+          "description": {
+            "type": "string",
+            "description": "New description of the skill",
+            "maxLength": 500,
+            "example": "Strongly typed JavaScript for large-scale applications"
+          }
+        }
+      },
+      "Decimal2": {
+        "type": "object",
+        "properties": {}
+      },
+      "JobOpeningSkillResponseDto": {
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "skillName": {
+            "type": "string",
+            "example": "TypeScript"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "skillId",
+          "skillName",
+          "isRequired"
+        ]
+      },
+      "JobOpeningResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "example": "Senior TypeScript Developer"
+          },
+          "description": {
+            "type": "string",
+            "example": "We are looking for a Senior TypeScript Developer..."
+          },
+          "expectedWage": {
+            "example": 120000,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Decimal2"
+              }
+            ]
+          },
+          "companyId": {
+            "type": "number",
+            "example": 1
+          },
+          "userId": {
+            "type": "number",
+            "example": 1
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobOpeningSkillResponseDto"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "expectedWage",
+          "companyId",
+          "userId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "JobOpeningSkillDto": {
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string",
+            "description": "Skill ID (UUID)",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "description": "Whether this skill is required for the job",
+            "example": true
+          }
+        },
+        "required": [
+          "skillId",
+          "isRequired"
+        ]
+      },
+      "CreateJobOpeningDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Job opening name",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Senior TypeScript Developer"
+          },
+          "description": {
+            "type": "string",
+            "description": "Job description",
+            "minLength": 1,
+            "example": "We are looking for a Senior TypeScript Developer..."
+          },
+          "expectedWage": {
+            "type": "number",
+            "description": "Expected wage/salary",
+            "example": 120000,
+            "minimum": 0
+          },
+          "skills": {
+            "description": "List of required/preferred skills for this job opening",
+            "example": [
+              {
+                "skillId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "isRequired": true
+              },
+              {
+                "skillId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                "isRequired": false
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobOpeningSkillDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "expectedWage"
+        ]
+      },
+      "UpdateJobOpeningDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New job opening name",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Senior TypeScript Developer"
+          },
+          "description": {
+            "type": "string",
+            "description": "New job description",
+            "minLength": 1,
+            "example": "We are looking for a Senior TypeScript Developer..."
+          },
+          "expectedWage": {
+            "type": "number",
+            "description": "New expected wage/salary",
+            "example": 130000,
+            "minimum": 0
+          },
+          "skills": {
+            "description": "New list of required/preferred skills for this job opening (replaces existing)",
+            "example": [
+              {
+                "skillId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "isRequired": true
+              },
+              {
+                "skillId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                "isRequired": false
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobOpeningSkillDto"
+            }
+          }
+        }
+      },
+      "ProfileSkillResponseDto": {
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "skillName": {
+            "type": "string",
+            "example": "TypeScript"
+          }
+        },
+        "required": [
+          "skillId",
+          "skillName"
+        ]
+      },
+      "ProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "description": {
+            "type": "object",
+            "example": "Experienced full-stack developer with 10+ years..."
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileSkillResponseDto"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Profile name (candidate name)",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "John Doe"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description/summary of the candidate",
+            "maxLength": 2000,
+            "example": "Experienced full-stack developer with 10+ years..."
+          },
+          "skills": {
+            "description": "List of skill names for this profile",
+            "example": [
+              "TypeScript",
+              "React",
+              "Node.js"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New profile name (candidate name)",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "John Doe"
+          },
+          "description": {
+            "type": "string",
+            "description": "New description/summary of the candidate",
+            "maxLength": 2000,
+            "example": "Experienced full-stack developer with 10+ years..."
+          },
+          "skills": {
+            "description": "New list of skill names for this profile (replaces existing)",
+            "example": [
+              "TypeScript",
+              "React",
+              "Node.js"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "StepResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "example": "Technical Interview"
+          },
+          "description": {
+            "type": "object",
+            "example": "Technical interview focusing on system design and coding"
+          },
+          "order": {
+            "type": "number",
+            "example": 1
+          },
+          "jobOpeningId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "order",
+          "jobOpeningId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateStepDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Step name",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Technical Interview"
+          },
+          "description": {
+            "type": "string",
+            "description": "Step description",
+            "maxLength": 2000,
+            "example": "Technical interview focusing on system design and coding"
+          },
+          "order": {
+            "type": "number",
+            "description": "Step order in the hiring process",
+            "minimum": 1,
+            "example": 1
+          }
+        },
+        "required": [
+          "name",
+          "order"
+        ]
+      },
+      "UpdateStepDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Step name",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Technical Interview"
+          },
+          "description": {
+            "type": "string",
+            "description": "Step description",
+            "maxLength": 2000,
+            "example": "Technical interview focusing on system design and coding"
+          },
+          "order": {
+            "type": "number",
+            "description": "Step order in the hiring process",
+            "minimum": 1,
+            "example": 1
+          }
+        }
+      },
+      "InterviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "transcript": {
+            "type": "string",
+            "example": "Candidate discussed their experience with React and Node.js..."
+          },
+          "keyTakeaways": {
+            "example": [
+              "Strong React skills",
+              "Good system design understanding"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userId": {
+            "type": "number",
+            "example": 1
+          },
+          "stepId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          }
+        },
+        "required": [
+          "id",
+          "transcript",
+          "keyTakeaways",
+          "userId",
+          "stepId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateInterviewDto": {
+        "type": "object",
+        "properties": {
+          "transcript": {
+            "type": "string",
+            "description": "Interview transcript",
+            "example": "Candidate discussed their experience with React and Node.js..."
+          },
+          "keyTakeaways": {
+            "description": "Key takeaways from the interview (array of strings, max 255 chars each)",
+            "example": [
+              "Strong React skills",
+              "Good system design understanding",
+              "Needs improvement in testing"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "transcript"
+        ]
+      },
+      "UpdateInterviewDto": {
+        "type": "object",
+        "properties": {
+          "transcript": {
+            "type": "string",
+            "description": "Interview transcript",
+            "example": "Candidate discussed their experience with React and Node.js..."
+          },
+          "keyTakeaways": {
+            "description": "Key takeaways from the interview (array of strings, max 255 chars each)",
+            "example": [
+              "Strong React skills",
+              "Good system design understanding",
+              "Needs improvement in testing"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       }
     }
   }
