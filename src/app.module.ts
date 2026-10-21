@@ -8,9 +8,11 @@ import { UsersModule } from './users/users.module.js';
 import { SkillsModule } from './skills/skills.module.js';
 import { JobOpeningsModule } from './job-openings/job-openings.module.js';
 import { ProfilesModule } from './profiles/profiles.module.js';
+import { StepsModule } from './steps/steps.module.js';
+import { InterviewsModule } from './interviews/interviews.module.js';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, LoginModule, SkillsModule, JobOpeningsModule, ProfilesModule],
+  imports: [PrismaModule, AuthModule, UsersModule, LoginModule, SkillsModule, JobOpeningsModule, ProfilesModule, StepsModule, InterviewsModule],
   controllers: [AppController],
   providers: [AppService],
 })
