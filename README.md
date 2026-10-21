@@ -27,6 +27,88 @@
 
 ## Project setup
 
+Use Node.js 24.15+ (or Node.js 22.22.3+) for the current Nest CLI toolchain.
+
+Copy `.env.example` to `.env` before starting the API. The local database is
+SQLite (`DATABASE_URL=file:./prisma/talentlens.db`). Set a random `JWT_SECRET`.
+The frontend uses `app/.env` with `VITE_API_URL=http://localhost:3000`;
+the API allows that frontend through `CORS_ORIGINS=http://localhost:5173`.
+
+Apply the database migrations before starting the API:
+
+```bash
+node node_modules/prisma/build/index.js migrate deploy --config prisma7.config.ts
+```
+
+The schema-alignment migration adds the missing profile, skill and job timestamps
+and skill description column while preserving existing records and relations.
+
+### AI providers and CV import
+
+`POST /profiles/upload-cv` accepts an authenticated multipart request with a
+`cv` field containing a PDF up to 5 MB. The API extracts text locally, sends it
+to the configured provider and validates the resulting name, description and
+skills before saving. PDFs must contain selectable text; OCR is not included.
+The maximum extracted text length is 50,000 characters.
+
+Configure these variables **only in `api/.env`**:
+
+| Variable | Meaning |
+| --- | --- |
+| `AI_PROVIDER` | Protocol: `openrouter`, `openai`, `anthropic` or `gemini` |
+| `AI_MODEL` | Exact text/chat model identifier available to your account |
+| `AI_API_KEY` | Provider key; may be blank for local OpenAI-compatible servers |
+| `AI_API_URL` | Versioned base URL, without the operation path |
+| `AI_TIMEOUT_MS` | Request timeout, defaults to 60000 (maximum 300000) |
+
+Provider base URLs:
+
+| Protocol | Example base URL | Operation appended by the service |
+| --- | --- | --- |
+| `openrouter` | `https://openrouter.ai/api/v1` | `/chat/completions` |
+| `openai` | `https://api.openai.com/v1` | `/chat/completions` |
+| `anthropic` | `https://api.anthropic.com/v1` | `/messages` |
+| `gemini` | `https://generativelanguage.googleapis.com/v1beta` | `/models/{AI_MODEL}:generateContent` |
+
+For another OpenAI-compatible provider, keep `AI_PROVIDER=openai` and change
+the URL, model and key. For example, a local Ollama server uses
+`AI_API_URL=http://localhost:11434/v1` and a model installed on that server.
+Compatibility requires the Chat Completions protocol and text responses.
+Native Azure deployments and other protocols require an additional adapter.
+
+The default configuration uses OpenRouter with `AI_MODEL=openrouter/free`.
+This router selects one model from the currently available free pool for each
+request. CV extraction sends a strict `json_schema` response format and
+`provider.require_parameters=true`, so endpoints cannot silently ignore the
+profile schema. Models without the required structured-output support are
+excluded, including safety classifiers that return labels instead of profiles.
+It does not send a CV to every model. There is no hardcoded model list to age.
+The OpenRouter adapter only accepts `openrouter/free` or a `vendor/model:free`
+identifier and sends no paid fallback models. Free requests remain subject to
+OpenRouter account quotas, rate limits and provider availability.
+See the [Free Models Router documentation](https://openrouter.ai/docs/guides/routing/routers/free-router).
+
+Set your OpenRouter key in `AI_API_KEY` in the ignored local `.env` file.
+Keys are intentionally empty in the examples: supply your own value.
+
+To test a real CV against the configured provider without writing to the database:
+
+```bash
+npm run test:cv -- "path/to/cv.pdf"
+```
+
+This command sends the extracted CV text to the configured AI provider and
+prints the validated profile JSON. The PDF is not added to the repository.
+
+The API can start without AI configuration; CV import returns HTTP 503 until
+configured. Invalid PDFs return 400, oversized uploads 413, invalid provider
+responses 502 and provider timeouts 504. No mock profile is saved on failure.
+Never put provider secrets in `VITE_*` variables, which are bundled for browsers.
+
+Protocol references: [Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create),
+[Anthropic Messages](https://platform.claude.com/docs/en/api/messages/create),
+[Gemini generateContent](https://ai.google.dev/api/generate-content).
+
 ```bash
 $ npm install
 ```
@@ -56,6 +138,12 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+The CV upload integration tests authenticate through `/login`, submit a real
+fictional PDF and verify the saved profile, skills and education in SQLite.
+Only the external AI response is mocked. Each test run uses an isolated temporary
+database with the committed migrations; no real AI key or local development data
+is needed. Invalid AI output is also checked to leave no partial records.
 
 ## Deployment
 
@@ -123,6 +211,6 @@ curl -X POST http://localhost:3000/profiles/upload-cv \
   -F "cv=@./candidate.pdf;type=application/pdf"
 ```
 
-The AI result follows the `CreateProfileDto` shape: `name` is required; `description`, `skills`, and `educationalBackground` are optional. Each education entry contains `institution`, `degree`, an ISO `startDate`, and an optional ISO `endDate` (or `null` when the course is ongoing). Invalid AI output is rejected before any profile is saved. The configured provider currently returns name, description, and skills; it must also emit `educationalBackground` for education to be populated from CVs.
+The AI result follows the `CreateProfileDto` shape: `name` is required; `description`, `skills`, and `educationalBackground` are optional. Each education entry contains `institution`, `degree`, an ISO `startDate`, and an optional ISO `endDate` (or `null` when the course is ongoing). Invalid AI output is rejected before any profile is saved. The OpenRouter schema requests all four fields, using an empty description or arrays when information is unavailable. Education is extracted only when the CV supplies the required fields and dates.
 
 Swagger documents the multipart field and response at `http://localhost:3000/docs`.
