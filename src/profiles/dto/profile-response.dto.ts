@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { EducationResponseDto } from './education-response.dto.js';
 import { ProfileSkillResponseDto } from './profile-skill-response.dto.js';
 
 export class ProfileResponseDto {
@@ -13,6 +14,9 @@ export class ProfileResponseDto {
 
   @ApiPropertyOptional({ type: [ProfileSkillResponseDto] })
   skills?: ProfileSkillResponseDto[];
+
+  @ApiPropertyOptional({ type: [EducationResponseDto] })
+  educationalBackground?: EducationResponseDto[];
 
   @ApiProperty({ example: '2026-10-04T19:53:33.840Z' })
   createdAt!: Date;

@@ -1,0 +1,70 @@
+%PDF-1.4
+%âãÏÓ
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Length 3140 >>
+stream
+BT /F2 23 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 780 Tm (MARINA COSTA ALMEIDA) Tj ET
+BT /F1 13 Tf 0.08 0.30 0.42 rg 1 0 0 1 48 755 Tm (Desenvolvedora Full Stack) Tj ET
+BT /F1 10 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 730 Tm (Curitiba, PR | marina.almeida@example.com) Tj ET
+BT /F1 9 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 707 Tm (Perfil fictício para testes do TalentLens. Todos os dados são simulados.) Tj ET
+BT /F2 11 Tf 0.08 0.30 0.42 rg 1 0 0 1 48 668 Tm (RESUMO PROFISSIONAL) Tj ET
+0.78 0.84 0.87 RG 0.6 w 48 660 m 547 660 l S
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 641 Tm (Desenvolvedora com experiência na criação de aplicações web e APIs REST.) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 624 Tm (Atuação com TypeScript, React, Node.js e PostgreSQL, testes automatizados) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 607 Tm (e integração contínua. Interesse em acessibilidade e qualidade de software.) Tj ET
+BT /F2 11 Tf 0.08 0.30 0.42 rg 1 0 0 1 48 566 Tm (EXPERIÊNCIA PROFISSIONAL) Tj ET
+0.78 0.84 0.87 RG 0.6 w 48 558 m 547 558 l S
+BT /F2 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 539 Tm (Desenvolvedora Full Stack | Aurora Sistemas Fictícios) Tj ET
+BT /F1 10 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 520 Tm (01/03/2023 - 30/09/2026) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 499 Tm (- Desenvolvimento de interfaces com React, TypeScript, HTML e CSS.) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 482 Tm (- Implementação de APIs REST com Node.js e NestJS.) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 465 Tm (- Modelagem de dados em PostgreSQL e testes com Vitest.) Tj ET
+BT /F2 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 435 Tm (Estagiária de Desenvolvimento | Horizonte Tecnologia Fictícia) Tj ET
+BT /F1 10 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 416 Tm (01/08/2021 - 28/02/2023) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 395 Tm (- Manutenção de aplicações JavaScript e consultas SQL.) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 378 Tm (- Versionamento com Git e colaboração em equipe Scrum.) Tj ET
+BT /F2 11 Tf 0.08 0.30 0.42 rg 1 0 0 1 48 337 Tm (FORMAÇÃO ACADÊMICA) Tj ET
+0.78 0.84 0.87 RG 0.6 w 48 329 m 547 329 l S
+BT /F2 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 310 Tm (Bacharelado em Sistemas de Informação) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 291 Tm (Instituto Superior Fictício do Paraná) Tj ET
+BT /F1 10 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 272 Tm (Início: 01/02/2019 | Conclusão: 15/12/2022) Tj ET
+BT /F2 11 Tf 0.08 0.30 0.42 rg 1 0 0 1 48 231 Tm (COMPETÊNCIAS) Tj ET
+0.78 0.84 0.87 RG 0.6 w 48 223 m 547 223 l S
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 204 Tm (TypeScript, JavaScript, React, Node.js, NestJS, HTML, CSS, PostgreSQL,) Tj ET
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 187 Tm (SQL, Git, Docker, Vitest, APIs REST, integração contínua, Scrum.) Tj ET
+BT /F2 11 Tf 0.08 0.30 0.42 rg 1 0 0 1 48 146 Tm (IDIOMAS) Tj ET
+0.78 0.84 0.87 RG 0.6 w 48 138 m 547 138 l S
+BT /F1 11 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 119 Tm (Português: nativo | Inglês: intermediário) Tj ET
+BT /F1 8 Tf 0.16 0.20 0.25 rg 1 0 0 1 48 49 Tm (DOCUMENTO DE TESTE - SEM DADOS PESSOAIS REAIS) Tj ET
+BT /F1 8 Tf 0.16 0.20 0.25 rg 1 0 0 1 521 49 Tm (1 / 1) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000121 00000 n 
+0000000263 00000 n 
+0000000360 00000 n 
+0000000462 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3654
+%%EOF

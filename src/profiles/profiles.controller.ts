@@ -17,12 +17,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBadRequestResponse,
+  ApiBody,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiPayloadTooLargeResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -34,11 +37,12 @@ import { CreateProfileDto } from './dto/create-profile.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { ProfileResponseDto } from './dto/profile-response.dto.js';
 import { ProfileSkillResponseDto } from './dto/profile-skill-response.dto.js';
+import { CvFilePipe, MAX_CV_SIZE_BYTES } from './cv-file.pipe.js';
+import { ProfileWithRelations } from './profile-types.js';
 import { ProfileCreationService } from './services/profile-creation.service.js';
 import { ProfileDeleteService } from './services/profile-delete.service.js';
 import { ProfileEditService } from './services/profile-edit.service.js';
 import { ProfileFindService } from './services/profile-find.service.js';
-import { ApplicantProfile } from '../generated/prisma/client.js';
 
 @ApiTags('profiles')
 @ApiBearerAuth('bearer')
@@ -60,10 +64,18 @@ export class ProfilesController {
     }));
   }
 
-  private transformProfile(profile: ApplicantProfile & { skills?: Array<{ requirement: { id: string; name: string; description: string | null } }> }): ProfileResponseDto {
+  private transformProfile(profile: ProfileWithRelations): ProfileResponseDto {
     return {
       ...profile,
-      skills: profile.skills ? this.transformSkills(profile.skills) : undefined,
+      skills: this.transformSkills(profile.skills),
+      educationalBackground: profile.educationalBackground.map(({ id, institution, degree, startDate, endDate, profileId }) => ({
+        id,
+        institution,
+        degree,
+        startDate,
+        endDate,
+        profileId,
+      })),
     };
   }
 
@@ -109,21 +121,27 @@ export class ProfilesController {
   }
 
   @Post('upload-cv')
-  @UseInterceptors(FileInterceptor('cv'))
+  @UseInterceptors(FileInterceptor('cv', { limits: { fileSize: MAX_CV_SIZE_BYTES, files: 1 } }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['cv'],
+      properties: { cv: { type: 'string', format: 'binary' } },
+    },
+  })
   @ApiOperation({ summary: 'Upload a PDF CV and create an applicant profile' })
   @ApiCreatedResponse({
     description: 'The created profile from CV',
     type: ProfileResponseDto,
   })
-  @ApiBadRequestResponse({ description: 'Invalid file or failed to process CV' })
+  @ApiBadRequestResponse({ description: 'Missing or invalid PDF file' })
+  @ApiPayloadTooLargeResponse({ description: 'The PDF exceeds the 5 MB upload limit' })
   async uploadCv(
     @CurrentUser() requester: AuthPayload,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(CvFilePipe) file: Express.Multer.File,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileResponseDto> {
-    if (!file || file.mimetype !== 'application/pdf') {
-      throw new Error('Only PDF files are allowed');
-    }
     const profile = await this.profileCreationService.createFromCv(file);
     res.setHeader('Location', `/profiles/${profile.id}`);
     return this.transformProfile(profile);

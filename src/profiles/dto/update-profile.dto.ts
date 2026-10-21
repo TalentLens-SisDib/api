@@ -1,5 +1,17 @@
+import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+  IsInstance,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
+import { CreateEducationDto } from './create-profile.dto.js';
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({
@@ -29,9 +41,22 @@ export class UpdateProfileDto {
     type: [String],
     example: ['TypeScript', 'React', 'Node.js'],
   })
-  @IsOptional()
+  @ValidateIf((_object, value) => value !== undefined)
   @IsArray()
   @IsString({ each: true })
   @MaxLength(100, { each: true })
+  @ArrayMaxSize(100)
   skills?: string[];
+
+  @ApiPropertyOptional({
+    description: 'Replacement education records for this profile',
+    type: [CreateEducationDto],
+  })
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsArray()
+  @ArrayMaxSize(25)
+  @IsInstance(CreateEducationDto, { each: true })
+  @ValidateNested({ each: true })
+  @Type(() => CreateEducationDto)
+  educationalBackground?: CreateEducationDto[];
 }
