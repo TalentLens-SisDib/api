@@ -770,6 +770,170 @@
         ]
       }
     },
+    "/job-openings/{id}/applications": {
+      "get": {
+        "operationId": "JobOpeningsController_findApplications",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Applications for the job opening",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JobApplicationResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No job opening exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List applications for a job opening",
+        "tags": [
+          "job-openings"
+        ]
+      },
+      "post": {
+        "operationId": "JobOpeningsController_createApplication",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJobApplicationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created application",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobApplicationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id or payload is invalid"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not manage that job opening"
+          },
+          "404": {
+            "description": "No job opening or profile exists with that id"
+          },
+          "409": {
+            "description": "The profile has already applied to this job opening"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a profile to a job opening",
+        "tags": [
+          "job-openings"
+        ]
+      }
+    },
+    "/job-openings/{id}/applications/{profileId}": {
+      "delete": {
+        "operationId": "JobOpeningsController_removeApplication",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "description": "Applicant profile identifier (UUID)",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The application was removed"
+          },
+          "400": {
+            "description": "An id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not manage that job opening"
+          },
+          "404": {
+            "description": "No job opening or application exists with those ids"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove an application from a job opening",
+        "tags": [
+          "job-openings"
+        ]
+      }
+    },
     "/profiles": {
       "get": {
         "operationId": "ProfilesController_findAll",
@@ -1979,6 +2143,47 @@
           "updatedAt"
         ]
       },
+      "JobApplicationResponseDto": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "profileName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "jobOpeningId": {
+            "type": "string",
+            "example": "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+          },
+          "appliedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          }
+        },
+        "required": [
+          "profileId",
+          "profileName",
+          "jobOpeningId",
+          "appliedAt"
+        ]
+      },
+      "CreateJobApplicationDto": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
+            "description": "Applicant profile identifier (UUID)",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          }
+        },
+        "required": [
+          "profileId"
+        ]
+      },
       "JobOpeningSkillDto": {
         "type": "object",
         "properties": {
@@ -2140,6 +2345,82 @@
           "profileId"
         ]
       },
+      "ProfileJobOpeningResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "example": "Senior TypeScript Developer"
+          },
+          "description": {
+            "type": "string",
+            "example": "We are looking for a Senior TypeScript Developer..."
+          },
+          "companyId": {
+            "type": "number",
+            "example": 1
+          },
+          "userId": {
+            "type": "number",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          },
+          "expectedWage": {
+            "type": "string",
+            "example": "120000"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "companyId",
+          "userId",
+          "createdAt",
+          "updatedAt",
+          "expectedWage"
+        ]
+      },
+      "ProfileApplicationResponseDto": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "jobOpeningId": {
+            "type": "string",
+            "example": "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+          },
+          "appliedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "jobOpening": {
+            "$ref": "#/components/schemas/ProfileJobOpeningResponseDto"
+          }
+        },
+        "required": [
+          "profileId",
+          "jobOpeningId",
+          "appliedAt",
+          "jobOpening"
+        ]
+      },
       "ProfileResponseDto": {
         "type": "object",
         "properties": {
@@ -2167,6 +2448,12 @@
               "$ref": "#/components/schemas/EducationResponseDto"
             }
           },
+          "applications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileApplicationResponseDto"
+            }
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string",
@@ -2181,6 +2468,7 @@
         "required": [
           "id",
           "name",
+          "applications",
           "createdAt",
           "updatedAt"
         ]
