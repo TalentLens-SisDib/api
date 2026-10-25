@@ -81,6 +81,16 @@ export class ProfilesController {
         endDate,
         profileId,
       })),
+      profileInterviews: profile.profileInterviews?.map((pi) => ({
+        id: pi.id,
+        interviewId: pi.interviewId,
+        profileId: pi.profileId,
+        transcript: pi.transcript,
+        keyTakeaways: pi.keyTakeaways,
+        startDate: pi.startDate,
+        createdAt: pi.createdAt,
+        updatedAt: pi.updatedAt,
+      })) ?? [],
     };
   }
 

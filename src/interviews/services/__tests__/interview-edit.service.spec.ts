@@ -48,6 +48,11 @@ describe('InterviewEditService', () => {
       expect(mockPrisma.interview.update).toHaveBeenCalledWith({
         where: { id: '1' },
         data: { step: { connect: { id: 's2' } } },
+        include: {
+          profileInterviews: {
+            orderBy: { startDate: 'desc' },
+          },
+        },
       });
       expect(result).toEqual(updatedInterview);
     });
@@ -67,6 +72,11 @@ describe('InterviewEditService', () => {
       expect(mockPrisma.interview.update).toHaveBeenCalledWith({
         where: { id: '1' },
         data: {},
+        include: {
+          profileInterviews: {
+            orderBy: { startDate: 'desc' },
+          },
+        },
       });
       expect(result).toEqual(existingInterview);
     });

@@ -3,6 +3,7 @@ import { Prisma, Interview } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UpdateInterviewDto } from '../dto/update-interview.dto.js';
 import { InterviewFindService } from './interview-find.service.js';
+import { InterviewWithRelations } from './interview-find.service.js';
 
 @Injectable()
 export class InterviewEditService {
@@ -11,7 +12,7 @@ export class InterviewEditService {
     private readonly interviewFindService: InterviewFindService,
   ) {}
 
-  async update(id: string, dto: UpdateInterviewDto): Promise<Interview> {
+  async update(id: string, dto: UpdateInterviewDto): Promise<InterviewWithRelations> {
     await this.interviewFindService.findById(id);
 
     const updateData: Prisma.InterviewUpdateInput = {};
@@ -22,6 +23,11 @@ export class InterviewEditService {
     return this.prisma.interview.update({
       where: { id },
       data: updateData,
+      include: {
+        profileInterviews: {
+          orderBy: { startDate: 'desc' },
+        },
+      },
     });
   }
 }

@@ -44,6 +44,11 @@ describe('InterviewCreationService', () => {
       expect(mockInterviewFindService.findByUserAndStep).toHaveBeenCalledWith(1, 's1');
       expect(mockPrisma.interview.create).toHaveBeenCalledWith({
         data: { userId: 1, stepId: 's1' },
+        include: {
+          profileInterviews: {
+            orderBy: { startDate: 'desc' },
+          },
+        },
       });
       expect(result).toEqual(mockInterview);
     });
