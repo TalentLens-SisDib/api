@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -16,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiBadRequestResponse,
   ApiCreatedResponse,
+  ApiConflictResponse,
   ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -34,6 +36,9 @@ import { CreateJobOpeningDto } from './dto/create-job-opening.dto.js';
 import { UpdateJobOpeningDto } from './dto/update-job-opening.dto.js';
 import { JobOpeningResponseDto } from './dto/job-opening-response.dto.js';
 import { JobOpeningSkillResponseDto } from './dto/job-opening-skill-response.dto.js';
+import { CreateJobApplicationDto } from './dto/create-job-application.dto.js';
+import { JobApplicationResponseDto } from './dto/job-application-response.dto.js';
+import { JobApplicationService } from './services/job-application.service.js';
 import { JobOpeningCreationService } from './services/job-opening-creation.service.js';
 import { JobOpeningDeleteService } from './services/job-opening-delete.service.js';
 import { JobOpeningEditService } from './services/job-opening-edit.service.js';
@@ -51,6 +56,7 @@ export class JobOpeningsController {
     private readonly jobOpeningCreationService: JobOpeningCreationService,
     private readonly jobOpeningEditService: JobOpeningEditService,
     private readonly jobOpeningDeleteService: JobOpeningDeleteService,
+    private readonly jobApplicationService: JobApplicationService,
   ) {}
 
   private transformSkills(requirements: Array<{ requirement: { id: string; name: string; description: string | null }; isRequired: boolean }>): JobOpeningSkillResponseDto[] {
@@ -100,6 +106,52 @@ export class JobOpeningsController {
   ): Promise<JobOpeningResponseDto> {
     const jobOpening = await this.jobOpeningFindService.findById(id);
     return this.transformJobOpening(jobOpening);
+  }
+
+  @Get(':id/applications')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List applications for a job opening' })
+  @ApiParam({ name: 'id', description: 'Job opening identifier (UUID)', format: 'uuid' })
+  @ApiOkResponse({ description: 'Applications for the job opening', type: [JobApplicationResponseDto] })
+  @ApiBadRequestResponse({ description: 'The id is not a valid UUID' })
+  @ApiNotFoundResponse({ description: 'No job opening exists with that id' })
+  async findApplications(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<JobApplicationResponseDto[]> {
+    return this.jobApplicationService.findAll(id);
+  }
+
+  @Post(':id/applications')
+  @ApiOperation({ summary: 'Add a profile to a job opening' })
+  @ApiParam({ name: 'id', description: 'Job opening identifier (UUID)', format: 'uuid' })
+  @ApiCreatedResponse({ description: 'The created application', type: JobApplicationResponseDto })
+  @ApiBadRequestResponse({ description: 'The id or payload is invalid' })
+  @ApiConflictResponse({ description: 'The profile has already applied to this job opening' })
+  @ApiNotFoundResponse({ description: 'No job opening or profile exists with that id' })
+  @ApiForbiddenResponse({ description: 'The caller may not manage that job opening' })
+  async createApplication(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreateJobApplicationDto,
+  ): Promise<JobApplicationResponseDto> {
+    return this.jobApplicationService.create(requester, id, dto);
+  }
+
+  @Delete(':id/applications/:profileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remove an application from a job opening' })
+  @ApiParam({ name: 'id', description: 'Job opening identifier (UUID)', format: 'uuid' })
+  @ApiParam({ name: 'profileId', description: 'Applicant profile identifier (UUID)', format: 'uuid' })
+  @ApiNoContentResponse({ description: 'The application was removed' })
+  @ApiBadRequestResponse({ description: 'An id is not a valid UUID' })
+  @ApiNotFoundResponse({ description: 'No job opening or application exists with those ids' })
+  @ApiForbiddenResponse({ description: 'The caller may not manage that job opening' })
+  async removeApplication(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+  ): Promise<void> {
+    return this.jobApplicationService.remove(requester, id, profileId);
   }
 
   @Post()
