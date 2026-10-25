@@ -14,6 +14,11 @@ export class ProfileFindService {
             requirement: true,
           },
         },
+        culturalFits: {
+          include: {
+            culturalFit: true,
+          },
+        },
         educationalBackground: true,
         applications: {
           include: {
@@ -35,6 +40,11 @@ export class ProfileFindService {
         skills: {
           include: {
             requirement: true,
+          },
+        },
+        culturalFits: {
+          include: {
+            culturalFit: true,
           },
         },
         educationalBackground: true,

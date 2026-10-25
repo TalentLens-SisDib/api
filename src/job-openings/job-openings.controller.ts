@@ -36,6 +36,7 @@ import { CreateJobOpeningDto } from './dto/create-job-opening.dto.js';
 import { UpdateJobOpeningDto } from './dto/update-job-opening.dto.js';
 import { JobOpeningResponseDto } from './dto/job-opening-response.dto.js';
 import { JobOpeningSkillResponseDto } from './dto/job-opening-skill-response.dto.js';
+import { JobOpeningCulturalFitResponseDto } from './dto/job-opening-cultural-fit-response.dto.js';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto.js';
 import { JobApplicationResponseDto } from './dto/job-application-response.dto.js';
 import { JobApplicationService } from './services/job-application.service.js';
@@ -67,10 +68,19 @@ export class JobOpeningsController {
     }));
   }
 
-  private transformJobOpening(jobOpening: JobOpening & { requirements: Array<{ requirement: { id: string; name: string; description: string | null }; isRequired: boolean }> }): JobOpeningResponseDto {
+  private transformCulturalFits(culturalFits: Array<{ culturalFit: { id: string; name: string; description: string | null }; isRequired: boolean }>): JobOpeningCulturalFitResponseDto[] {
+    return culturalFits.map((cf) => ({
+      culturalFitId: cf.culturalFit.id,
+      culturalFitName: cf.culturalFit.name,
+      isRequired: cf.isRequired,
+    }));
+  }
+
+  private transformJobOpening(jobOpening: JobOpening & { requirements: Array<{ requirement: { id: string; name: string; description: string | null }; isRequired: boolean }>; culturalFits: Array<{ culturalFit: { id: string; name: string; description: string | null }; isRequired: boolean }> }): JobOpeningResponseDto {
     return {
       ...jobOpening,
       skills: jobOpening.requirements ? this.transformSkills(jobOpening.requirements) : undefined,
+      culturalFits: jobOpening.culturalFits ? this.transformCulturalFits(jobOpening.culturalFits) : undefined,
     };
   }
 

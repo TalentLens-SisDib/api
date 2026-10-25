@@ -38,6 +38,7 @@ import { CreateProfileDto } from './dto/create-profile.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { ProfileResponseDto } from './dto/profile-response.dto.js';
 import { ProfileSkillResponseDto } from './dto/profile-skill-response.dto.js';
+import { ProfileCulturalFitResponseDto } from './dto/profile-cultural-fit-response.dto.js';
 import { CvFilePipe, MAX_CV_SIZE_BYTES } from './cv-file.pipe.js';
 import { ProfileWithRelations } from './profile-types.js';
 import { ProfileCreationService } from './services/profile-creation.service.js';
@@ -69,10 +70,18 @@ export class ProfilesController {
     }));
   }
 
+  private transformCulturalFits(culturalFits: Array<{ culturalFit: { id: string; name: string; description: string | null } }>): ProfileCulturalFitResponseDto[] {
+    return culturalFits.map((cf) => ({
+      culturalFitId: cf.culturalFit.id,
+      culturalFitName: cf.culturalFit.name,
+    }));
+  }
+
   private transformProfile(profile: ProfileWithRelations): ProfileResponseDto {
     return {
       ...profile,
       skills: this.transformSkills(profile.skills),
+      culturalFits: this.transformCulturalFits(profile.culturalFits ?? []),
       educationalBackground: profile.educationalBackground.map(({ id, institution, degree, startDate, endDate, profileId }) => ({
         id,
         institution,

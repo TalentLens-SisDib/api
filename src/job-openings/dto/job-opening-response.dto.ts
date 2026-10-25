@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Prisma } from '../../generated/prisma/client.js';
 import { JobOpeningSkillResponseDto } from './job-opening-skill-response.dto.js';
+import { JobOpeningCulturalFitResponseDto } from './job-opening-cultural-fit-response.dto.js';
 
 export class JobOpeningResponseDto {
   @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
@@ -23,6 +24,9 @@ export class JobOpeningResponseDto {
 
   @ApiPropertyOptional({ type: [JobOpeningSkillResponseDto] })
   skills?: JobOpeningSkillResponseDto[];
+
+  @ApiPropertyOptional({ type: [JobOpeningCulturalFitResponseDto] })
+  culturalFits?: JobOpeningCulturalFitResponseDto[];
 
   @ApiProperty({ example: '2026-10-04T19:53:33.840Z' })
   createdAt!: Date;

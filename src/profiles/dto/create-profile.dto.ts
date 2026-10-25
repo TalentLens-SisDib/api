@@ -75,6 +75,18 @@ export class CreateProfileDto {
   skills?: string[];
 
   @ApiPropertyOptional({
+    description: 'List of cultural fit names for this profile',
+    type: [String],
+    example: ['Collaborative', 'Innovative', 'Growth mindset'],
+  })
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(100, { each: true })
+  @ArrayMaxSize(50)
+  culturalFits?: string[];
+
+  @ApiPropertyOptional({
     description: 'Education records extracted from the candidate CV',
     type: [CreateEducationDto],
   })

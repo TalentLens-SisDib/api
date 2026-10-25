@@ -5,6 +5,7 @@ import { UpdateProfileDto } from '../dto/update-profile.dto.js';
 import { ProfileWithRelations } from '../profile-types.js';
 import { ProfileFindService } from './profile-find.service.js';
 import { SkillsService } from './skills.service.js';
+import { CulturalFitService } from './cultural-fit.service.js';
 
 @Injectable()
 export class ProfileEditService {
@@ -12,6 +13,7 @@ export class ProfileEditService {
     private readonly prisma: PrismaService,
     private readonly profileFindService: ProfileFindService,
     private readonly skillsService: SkillsService,
+    private readonly culturalFitService: CulturalFitService,
   ) {}
 
   async update(
@@ -20,7 +22,7 @@ export class ProfileEditService {
   ): Promise<ProfileWithRelations> {
     await this.profileFindService.findById(id);
 
-    const { skills, educationalBackground, ...updateData } = dto;
+    const { skills, culturalFits, educationalBackground, ...updateData } = dto;
 
     return await this.prisma.$transaction(async (tx) => {
       await tx.applicantProfile.update({
@@ -39,6 +41,22 @@ export class ProfileEditService {
             data: skillRecords.map((skill) => ({
               profileId: id,
               requirementId: skill.id,
+            })),
+          });
+        }
+      }
+
+      if (culturalFits !== undefined) {
+        await tx.profileCulturalFit.deleteMany({
+          where: { profileId: id },
+        });
+
+        if (culturalFits.length > 0) {
+          const culturalFitRecords = await this.culturalFitService.upsertCulturalFits(tx, culturalFits);
+          await tx.profileCulturalFit.createMany({
+            data: culturalFitRecords.map((culturalFit) => ({
+              profileId: id,
+              culturalFitId: culturalFit.id,
             })),
           });
         }
@@ -70,6 +88,11 @@ export class ProfileEditService {
         skills: {
           include: {
             requirement: true,
+          },
+        },
+        culturalFits: {
+          include: {
+            culturalFit: true,
           },
         },
         educationalBackground: true,

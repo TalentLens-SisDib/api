@@ -57,6 +57,7 @@ model JobOpening {
   user         User                    @relation(fields: [userId], references: [id])
   
   requirements JobOpeningRequirement[]
+  culturalFits JobOpeningCulturalFit[]
   steps        Step[]
   jobApplications JobApplication[]
 }
@@ -90,6 +91,17 @@ model Skill {
 	@@map("Requirement")
 }
 
+model CulturalFit {
+  id          String                  @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @default(now()) @updatedAt
+  
+  jobOpenings JobOpeningCulturalFit[]
+  profiles    ProfileCulturalFit[]
+}
+
 model JobOpeningRequirement {
   jobOpeningId  String
   jobOpening    JobOpening  @relation(fields: [jobOpeningId], references: [id])
@@ -104,6 +116,18 @@ model JobOpeningRequirement {
   @@id([jobOpeningId, requirementId])
 }
 
+model JobOpeningCulturalFit {
+  jobOpeningId    String
+  jobOpening      JobOpening   @relation(fields: [jobOpeningId], references: [id])
+  
+  culturalFitId   String
+  culturalFit     CulturalFit  @relation(fields: [culturalFitId], references: [id])
+  
+  isRequired      Boolean
+
+  @@id([jobOpeningId, culturalFitId])
+}
+
 model ApplicantProfile {
   id                    String               @id @default(uuid())
   name                  String
@@ -112,6 +136,7 @@ model ApplicantProfile {
   updatedAt             DateTime             @default(now()) @updatedAt
   
   skills                ProfileSkill[]       // Skills ligadas à tabela de Requirements
+  culturalFits          ProfileCulturalFit[]
   applications          JobApplication[]     // Vagas de emprego às quais se candidatou
   
   educationalBackground Education[]
@@ -137,6 +162,16 @@ model ProfileSkill {
   requirement   Skill @relation(fields: [requirementId], references: [id], onDelete: Cascade)
 
   @@id([profileId, requirementId])
+}
+
+model ProfileCulturalFit {
+  profileId      String
+  profile        ApplicantProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  culturalFitId  String
+  culturalFit    CulturalFit        @relation(fields: [culturalFitId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, culturalFitId])
 }
 
 model JobApplication {

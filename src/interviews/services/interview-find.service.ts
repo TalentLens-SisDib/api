@@ -39,4 +39,15 @@ export class InterviewFindService {
     }
     return interview;
   }
+
+  async findByUserAndStep(userId: number, stepId: string): Promise<InterviewWithRelations | null> {
+    return this.prisma.interview.findFirst({
+      where: { userId, stepId },
+      include: {
+        profileInterviews: {
+          orderBy: { startDate: 'desc' },
+        },
+      },
+    });
+  }
 }

@@ -7,6 +7,7 @@ import { CreateProfileDto } from '../dto/create-profile.dto.js';
 import { ProfileWithRelations } from '../profile-types.js';
 import { AiService } from './ai.service.js';
 import { SkillsService } from './skills.service.js';
+import { CulturalFitService } from './cultural-fit.service.js';
 
 @Injectable()
 export class ProfileCreationService {
@@ -14,6 +15,7 @@ export class ProfileCreationService {
     private readonly prisma: PrismaService,
     private readonly aiService: AiService,
     private readonly skillsService: SkillsService,
+    private readonly culturalFitService: CulturalFitService,
   ) {}
 
   async createFromCv(file: Express.Multer.File): Promise<ProfileWithRelations> {
@@ -23,7 +25,7 @@ export class ProfileCreationService {
   }
 
   async create(dto: CreateProfileDto): Promise<ProfileWithRelations> {
-    const { skills, educationalBackground, ...profileData } = dto;
+    const { skills, culturalFits, educationalBackground, ...profileData } = dto;
 
     return await this.prisma.$transaction(async (tx) => {
       const profile = await tx.applicantProfile.create({
@@ -51,6 +53,16 @@ export class ProfileCreationService {
         });
       }
 
+      if (culturalFits && culturalFits.length > 0) {
+        const culturalFitRecords = await this.culturalFitService.upsertCulturalFits(tx, culturalFits);
+        await tx.profileCulturalFit.createMany({
+          data: culturalFitRecords.map((culturalFit) => ({
+            profileId: profile.id,
+            culturalFitId: culturalFit.id,
+          })),
+        });
+      }
+
       return this.findByIdWithSkills(tx, profile.id);
     });
   }
@@ -62,6 +74,11 @@ export class ProfileCreationService {
         skills: {
           include: {
             requirement: true,
+          },
+        },
+        culturalFits: {
+          include: {
+            culturalFit: true,
           },
         },
         educationalBackground: true,
