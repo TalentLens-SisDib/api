@@ -1347,7 +1347,7 @@
             }
           },
           "400": {
-            "description": "The payload failed validation or interview already exists for this user and step"
+            "description": "The payload failed validation"
           },
           "401": {
             "description": "Missing, invalid or expired token"

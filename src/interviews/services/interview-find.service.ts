@@ -25,10 +25,4 @@ export class InterviewFindService {
     }
     return interview;
   }
-
-  async findByUserAndStep(userId: number, stepId: string): Promise<Interview | null> {
-    return this.prisma.interview.findUnique({
-      where: { userId_stepId: { userId, stepId } },
-    });
-  }
 }

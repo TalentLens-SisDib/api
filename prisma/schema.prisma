@@ -162,6 +162,4 @@ model Interview {
   
   stepId        String
   step          Step      @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, stepId])
 }
