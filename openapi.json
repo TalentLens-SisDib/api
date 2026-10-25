@@ -286,6 +286,37 @@
         ]
       }
     },
+    "/login/refresh": {
+      "post": {
+        "description": "Send the refresh token in the Authorization header. This endpoint has no request body.",
+        "operationId": "LoginController_refresh",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "A new signed access token and its metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired refresh token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Exchange a refresh token for a new access token",
+        "tags": [
+          "login"
+        ]
+      }
+    },
     "/skills": {
       "get": {
         "operationId": "SkillsController_findAll",
@@ -957,6 +988,25 @@
       "post": {
         "operationId": "ProfilesController_uploadCv",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "cv"
+                ],
+                "properties": {
+                  "cv": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "The created profile from CV",
@@ -969,10 +1019,13 @@
             }
           },
           "400": {
-            "description": "Invalid file or failed to process CV"
+            "description": "Missing or invalid PDF file"
           },
           "401": {
             "description": "Missing, invalid or expired token"
+          },
+          "413": {
+            "description": "The PDF exceeds the 5 MB upload limit"
           }
         },
         "security": [
@@ -1558,7 +1611,7 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "type": "http",
-        "description": "Access token returned by POST /login"
+        "description": "Access token returned by POST /login or /login/refresh; refresh token is used only by /login/refresh"
       }
     },
     "schemas": {
@@ -1715,6 +1768,42 @@
           "accessToken": {
             "type": "string",
             "description": "Signed JWT to send as `Authorization: Bearer <token>`",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Token lifetime in seconds",
+            "example": 3600
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Signed refresh JWT to send as `Authorization: Bearer <token>` to POST /login/refresh",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...refresh"
+          },
+          "refreshExpiresIn": {
+            "type": "number",
+            "description": "Refresh token lifetime in seconds",
+            "example": 604800
+          }
+        },
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn",
+          "refreshToken",
+          "refreshExpiresIn"
+        ]
+      },
+      "RefreshResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "New signed JWT to send as `Authorization: Bearer <token>`",
             "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
           },
           "tokenType": {
@@ -2013,6 +2102,44 @@
           "skillName"
         ]
       },
+      "EducationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "institution": {
+            "type": "string",
+            "example": "University of São Paulo"
+          },
+          "degree": {
+            "type": "string",
+            "example": "Computer Science"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2018-02-01T00:00:00.000Z"
+          },
+          "endDate": {
+            "type": "object",
+            "example": "2022-12-15T00:00:00.000Z",
+            "nullable": true
+          },
+          "profileId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          }
+        },
+        "required": [
+          "id",
+          "institution",
+          "degree",
+          "startDate",
+          "profileId"
+        ]
+      },
       "ProfileResponseDto": {
         "type": "object",
         "properties": {
@@ -2034,6 +2161,12 @@
               "$ref": "#/components/schemas/ProfileSkillResponseDto"
             }
           },
+          "educationalBackground": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EducationResponseDto"
+            }
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string",
@@ -2050,6 +2183,37 @@
           "name",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "CreateEducationDto": {
+        "type": "object",
+        "properties": {
+          "institution": {
+            "type": "string",
+            "example": "University of São Paulo",
+            "maxLength": 200
+          },
+          "degree": {
+            "type": "string",
+            "example": "Computer Science",
+            "maxLength": 200
+          },
+          "startDate": {
+            "type": "string",
+            "example": "2018-02-01",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "object",
+            "example": "2022-12-15",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "institution",
+          "degree",
+          "startDate"
         ]
       },
       "CreateProfileDto": {
@@ -2078,6 +2242,13 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "educationalBackground": {
+            "description": "Education records extracted from the candidate CV",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateEducationDto"
             }
           }
         },
@@ -2111,6 +2282,13 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "educationalBackground": {
+            "description": "Replacement education records for this profile",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateEducationDto"
             }
           }
         }
