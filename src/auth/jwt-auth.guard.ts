@@ -21,12 +21,21 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Missing bearer token');
     }
 
+    let payload: AuthPayload & { tokenUse?: string };
     try {
-      request.user = await this.jwtService.verifyAsync<AuthPayload>(token);
+      payload = await this.jwtService.verifyAsync<
+        AuthPayload & { tokenUse?: string }
+      >(token);
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
+    // Tokens issued before token purposes were added remain valid access tokens.
+    if (payload.tokenUse !== undefined && payload.tokenUse !== 'access') {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+
+    request.user = payload;
     return true;
   }
 }

@@ -34,6 +34,15 @@ SQLite (`DATABASE_URL=file:./prisma/talentlens.db`). Set a random `JWT_SECRET`.
 The frontend uses `app/.env` with `VITE_API_URL=http://localhost:3000`;
 the API allows that frontend through `CORS_ORIGINS=http://localhost:5173`.
 
+### Authentication
+
+`POST /login` returns an access token and a separate refresh token. Send the
+access token as `Authorization: Bearer <token>` to protected routes. To get a
+new access token, call `POST /login/refresh` with the refresh token in that
+header and no request body. Access tokens last 3600 seconds by default;
+`JWT_REFRESH_TTL_SECONDS` controls the refresh token lifetime (604800 seconds
+by default).
+
 Apply the database migrations before starting the API:
 
 ```bash

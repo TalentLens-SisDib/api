@@ -1,16 +1,11 @@
 import { PrismaService } from '../../../prisma/prisma.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InterviewCreationService } from '../interview-creation.service.js';
-import { InterviewFindService } from '../interview-find.service.js';
 
 const mockPrisma = {
   interview: {
     create: vi.fn(),
   },
-};
-
-const mockInterviewFindService = {
-  findByUserAndStep: vi.fn(),
 };
 
 describe('InterviewCreationService', () => {
@@ -22,7 +17,6 @@ describe('InterviewCreationService', () => {
       providers: [
         InterviewCreationService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: InterviewFindService, useValue: mockInterviewFindService },
       ],
     }).compile();
 
@@ -30,9 +24,8 @@ describe('InterviewCreationService', () => {
   });
 
   describe('create', () => {
-    it('should create an interview when none exists for user and step', async () => {
+    it('should create an interview', async () => {
       // Arrange
-      mockInterviewFindService.findByUserAndStep.mockResolvedValue(null);
       const mockInterview = { id: '1', stepId: 's1', userId: 1, transcript: 'Test', keyTakeaways: '["takeaway"]' };
       mockPrisma.interview.create.mockResolvedValue(mockInterview);
       const dto = { transcript: 'Test', keyTakeaways: ['takeaway'] };
@@ -41,7 +34,6 @@ describe('InterviewCreationService', () => {
       const result = await service.create(1, 's1', dto);
 
       // Assert
-      expect(mockInterviewFindService.findByUserAndStep).toHaveBeenCalledWith(1, 's1');
       expect(mockPrisma.interview.create).toHaveBeenCalledWith({
         data: { transcript: 'Test', keyTakeaways: '["takeaway"]', userId: 1, stepId: 's1' },
       });
@@ -50,7 +42,6 @@ describe('InterviewCreationService', () => {
 
     it('should create interview with empty keyTakeaways when not provided', async () => {
       // Arrange
-      mockInterviewFindService.findByUserAndStep.mockResolvedValue(null);
       const mockInterview = { id: '1', stepId: 's1', userId: 1, transcript: 'Test', keyTakeaways: '[]' };
       mockPrisma.interview.create.mockResolvedValue(mockInterview);
       const dto = { transcript: 'Test' };
@@ -65,19 +56,19 @@ describe('InterviewCreationService', () => {
       expect(result).toEqual(mockInterview);
     });
 
-    it('should throw error when interview already exists for user and step', async () => {
+    it('should allow multiple interviews for the same user and step', async () => {
       // Arrange
-      mockInterviewFindService.findByUserAndStep.mockResolvedValue({ id: '1' });
-      const dto = { transcript: 'Test' };
+      const first = { id: '1', stepId: 's1', userId: 1, transcript: 'First', keyTakeaways: '[]' };
+      const second = { id: '2', stepId: 's1', userId: 1, transcript: 'Second', keyTakeaways: '[]' };
+      mockPrisma.interview.create.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
 
       // Act
-      const promise = service.create(1, 's1', dto);
+      const firstResult = await service.create(1, 's1', { transcript: 'First' });
+      const secondResult = await service.create(1, 's1', { transcript: 'Second' });
 
       // Assert
-      await expect(promise).rejects.toThrow(
-        'Interview already exists for this user and step',
-      );
-      expect(mockPrisma.interview.create).not.toHaveBeenCalled();
+      expect(mockPrisma.interview.create).toHaveBeenCalledTimes(2);
+      expect([firstResult, secondResult]).toEqual([first, second]);
     });
   });
 });

@@ -119,32 +119,4 @@ describe('InterviewFindService', () => {
       await expect(promise).rejects.toThrow(NotFoundException);
     });
   });
-
-  describe('findByUserAndStep', () => {
-    it('should return interview when found', async () => {
-      // Arrange
-      const mockInterview = { id: '1', stepId: 's1', userId: 1, transcript: 'Test', keyTakeaways: '[]' };
-      mockPrisma.interview.findUnique.mockResolvedValue(mockInterview);
-
-      // Act
-      const result = await service.findByUserAndStep(1, 's1');
-
-      // Assert
-      expect(mockPrisma.interview.findUnique).toHaveBeenCalledWith({
-        where: { userId_stepId: { userId: 1, stepId: 's1' } },
-      });
-      expect(result).toEqual(mockInterview);
-    });
-
-    it('should return null when not found', async () => {
-      // Arrange
-      mockPrisma.interview.findUnique.mockResolvedValue(null);
-
-      // Act
-      const result = await service.findByUserAndStep(1, 's1');
-
-      // Assert
-      expect(result).toBeNull();
-    });
-  });
 });
