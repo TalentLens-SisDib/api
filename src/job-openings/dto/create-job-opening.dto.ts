@@ -18,6 +18,22 @@ export class JobOpeningSkillDto {
   isRequired!: boolean;
 }
 
+export class JobOpeningCulturalFitDto {
+  @ApiProperty({
+    description: 'Cultural Fit ID (UUID)',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @IsUUID()
+  culturalFitId!: string;
+
+  @ApiProperty({
+    description: 'Whether this cultural fit is required for the job',
+    example: true,
+  })
+  @IsBoolean()
+  isRequired!: boolean;
+}
+
 export class CreateJobOpeningDto {
   @ApiProperty({
     description: 'Job opening name',
@@ -61,4 +77,18 @@ export class CreateJobOpeningDto {
   @ValidateNested({ each: true })
   @Type(() => JobOpeningSkillDto)
   skills?: JobOpeningSkillDto[];
+
+  @ApiPropertyOptional({
+    description: 'List of required/preferred cultural fits for this job opening',
+    type: [JobOpeningCulturalFitDto],
+    example: [
+      { culturalFitId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', isRequired: true },
+      { culturalFitId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901', isRequired: false },
+    ],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => JobOpeningCulturalFitDto)
+  culturalFits?: JobOpeningCulturalFitDto[];
 }

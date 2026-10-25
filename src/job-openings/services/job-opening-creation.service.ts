@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, JobOpening } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { CreateJobOpeningDto, JobOpeningSkillDto } from '../dto/create-job-opening.dto.js';
+import { CreateJobOpeningDto, JobOpeningSkillDto, JobOpeningCulturalFitDto } from '../dto/create-job-opening.dto.js';
 import type { AuthPayload } from '../../auth/auth-payload.js';
 
 @Injectable()
 export class JobOpeningCreationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(requester: AuthPayload, dto: CreateJobOpeningDto): Promise<JobOpening & { requirements: Array<{ requirement: { id: string; name: string; description: string | null } } & { isRequired: boolean }> }> {
-    const { skills, ...jobOpeningData } = dto;
+  async create(requester: AuthPayload, dto: CreateJobOpeningDto): Promise<JobOpening & { requirements: Array<{ requirement: { id: string; name: string; description: string | null } } & { isRequired: boolean }>; culturalFits: Array<{ culturalFit: { id: string; name: string; description: string | null } } & { isRequired: boolean }> }> {
+    const { skills, culturalFits, ...jobOpeningData } = dto;
 
     return await this.prisma.$transaction(async (tx) => {
       const jobOpening = await tx.jobOpening.create({
@@ -30,6 +30,16 @@ export class JobOpeningCreationService {
         });
       }
 
+      if (culturalFits && culturalFits.length > 0) {
+        await tx.jobOpeningCulturalFit.createMany({
+          data: culturalFits.map((culturalFit: JobOpeningCulturalFitDto) => ({
+            jobOpeningId: jobOpening.id,
+            culturalFitId: culturalFit.culturalFitId,
+            isRequired: culturalFit.isRequired,
+          })),
+        });
+      }
+
       return this.findByIdWithSkills(tx, jobOpening.id);
     });
   }
@@ -41,6 +51,11 @@ export class JobOpeningCreationService {
         requirements: {
           include: {
             requirement: true,
+          },
+        },
+        culturalFits: {
+          include: {
+            culturalFit: true,
           },
         },
       },

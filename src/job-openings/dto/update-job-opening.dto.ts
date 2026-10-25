@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { JobOpeningSkillDto } from './create-job-opening.dto.js';
+import { JobOpeningSkillDto, JobOpeningCulturalFitDto } from './create-job-opening.dto.js';
 
 export class UpdateJobOpeningDto {
   @ApiPropertyOptional({
@@ -49,4 +49,18 @@ export class UpdateJobOpeningDto {
   @ValidateNested({ each: true })
   @Type(() => JobOpeningSkillDto)
   skills?: JobOpeningSkillDto[];
+
+  @ApiPropertyOptional({
+    description: 'New list of required/preferred cultural fits for this job opening (replaces existing)',
+    type: [JobOpeningCulturalFitDto],
+    example: [
+      { culturalFitId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', isRequired: true },
+      { culturalFitId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901', isRequired: false },
+    ],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => JobOpeningCulturalFitDto)
+  culturalFits?: JobOpeningCulturalFitDto[];
 }
