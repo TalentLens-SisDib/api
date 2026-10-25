@@ -12,4 +12,17 @@ export class LoginResponseDto {
 
   @ApiProperty({ description: 'Token lifetime in seconds', example: 3600 })
   expiresIn!: number;
+
+  @ApiProperty({
+    description:
+      'Signed refresh JWT to send as `Authorization: Bearer <token>` to POST /login/refresh',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...refresh',
+  })
+  refreshToken!: string;
+
+  @ApiProperty({
+    description: 'Refresh token lifetime in seconds',
+    example: 604800,
+  })
+  refreshExpiresIn!: number;
 }
