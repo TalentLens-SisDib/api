@@ -54,8 +54,6 @@ export class InterviewsController {
   private transformInterview(interview: Interview): InterviewResponseDto {
     return {
       id: interview.id,
-      transcript: interview.transcript,
-      keyTakeaways: JSON.parse(interview.keyTakeaways || '[]'),
       userId: interview.userId,
       stepId: interview.stepId,
       createdAt: interview.createdAt,
@@ -107,7 +105,7 @@ export class InterviewsController {
     @Body() dto: CreateInterviewDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<InterviewResponseDto> {
-    const interview = await this.interviewCreationService.create(requester.sub, stepId, dto);
+    const interview = await this.interviewCreationService.create(requester.sub, { ...dto, stepId });
     res.setHeader('Location', `/steps/${stepId}/interviews/${interview.id}`);
     return this.transformInterview(interview);
   }

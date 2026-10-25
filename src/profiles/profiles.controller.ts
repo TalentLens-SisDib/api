@@ -18,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiBadRequestResponse,
   ApiBody,
+  ApiConflictResponse,
   ApiConsumes,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -43,6 +44,9 @@ import { ProfileCreationService } from './services/profile-creation.service.js';
 import { ProfileDeleteService } from './services/profile-delete.service.js';
 import { ProfileEditService } from './services/profile-edit.service.js';
 import { ProfileFindService } from './services/profile-find.service.js';
+import { ProfileInterviewService } from './services/profile-interview.service.js';
+import { AddProfileInterviewDto } from './dto/add-profile-interview.dto.js';
+import { ProfileInterviewResponseDto } from './dto/profile-interview-response.dto.js';
 
 @ApiTags('profiles')
 @ApiBearerAuth('bearer')
@@ -55,6 +59,7 @@ export class ProfilesController {
     private readonly profileCreationService: ProfileCreationService,
     private readonly profileEditService: ProfileEditService,
     private readonly profileDeleteService: ProfileDeleteService,
+    private readonly profileInterviewService: ProfileInterviewService,
   ) {}
 
   private transformSkills(skills: Array<{ requirement: { id: string; name: string; description: string | null } }>): ProfileSkillResponseDto[] {
@@ -145,6 +150,25 @@ export class ProfilesController {
     const profile = await this.profileCreationService.createFromCv(file);
     res.setHeader('Location', `/profiles/${profile.id}`);
     return this.transformProfile(profile);
+  }
+
+  @Post(':id/add-interview')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add an interview to a profile' })
+  @ApiParam({ name: 'id', description: 'Profile identifier (UUID)', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
+  @ApiCreatedResponse({ description: 'The created profile interview', type: ProfileInterviewResponseDto })
+  @ApiBadRequestResponse({ description: 'The payload failed validation' })
+  @ApiNotFoundResponse({ description: 'Profile or interview not found' })
+  @ApiConflictResponse({ description: 'Interview already associated with this profile' })
+  async addInterview(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id') id: string,
+    @Body() dto: AddProfileInterviewDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ProfileInterviewResponseDto> {
+    const profileInterview = await this.profileInterviewService.addInterviewToProfile(id, dto);
+    res.setHeader('Location', `/profiles/${id}/interviews/${profileInterview.id}`);
+    return profileInterview;
   }
 
   @Patch(':id')

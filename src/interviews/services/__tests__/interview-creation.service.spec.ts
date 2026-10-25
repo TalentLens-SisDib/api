@@ -33,34 +33,17 @@ describe('InterviewCreationService', () => {
     it('should create an interview when none exists for user and step', async () => {
       // Arrange
       mockInterviewFindService.findByUserAndStep.mockResolvedValue(null);
-      const mockInterview = { id: '1', stepId: 's1', userId: 1, transcript: 'Test', keyTakeaways: '["takeaway"]' };
+      const mockInterview = { id: '1', stepId: 's1', userId: 1, createdAt: new Date(), updatedAt: new Date() };
       mockPrisma.interview.create.mockResolvedValue(mockInterview);
-      const dto = { transcript: 'Test', keyTakeaways: ['takeaway'] };
+      const dto = { stepId: 's1' };
 
       // Act
-      const result = await service.create(1, 's1', dto);
+      const result = await service.create(1, dto);
 
       // Assert
       expect(mockInterviewFindService.findByUserAndStep).toHaveBeenCalledWith(1, 's1');
       expect(mockPrisma.interview.create).toHaveBeenCalledWith({
-        data: { transcript: 'Test', keyTakeaways: '["takeaway"]', userId: 1, stepId: 's1' },
-      });
-      expect(result).toEqual(mockInterview);
-    });
-
-    it('should create interview with empty keyTakeaways when not provided', async () => {
-      // Arrange
-      mockInterviewFindService.findByUserAndStep.mockResolvedValue(null);
-      const mockInterview = { id: '1', stepId: 's1', userId: 1, transcript: 'Test', keyTakeaways: '[]' };
-      mockPrisma.interview.create.mockResolvedValue(mockInterview);
-      const dto = { transcript: 'Test' };
-
-      // Act
-      const result = await service.create(1, 's1', dto);
-
-      // Assert
-      expect(mockPrisma.interview.create).toHaveBeenCalledWith({
-        data: { transcript: 'Test', keyTakeaways: '[]', userId: 1, stepId: 's1' },
+        data: { userId: 1, stepId: 's1' },
       });
       expect(result).toEqual(mockInterview);
     });
@@ -68,10 +51,10 @@ describe('InterviewCreationService', () => {
     it('should throw error when interview already exists for user and step', async () => {
       // Arrange
       mockInterviewFindService.findByUserAndStep.mockResolvedValue({ id: '1' });
-      const dto = { transcript: 'Test' };
+      const dto = { stepId: 's1' };
 
       // Act
-      const promise = service.create(1, 's1', dto);
+      const promise = service.create(1, dto);
 
       // Assert
       await expect(promise).rejects.toThrow(

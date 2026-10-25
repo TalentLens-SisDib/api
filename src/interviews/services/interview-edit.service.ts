@@ -15,11 +15,8 @@ export class InterviewEditService {
     await this.interviewFindService.findById(id);
 
     const updateData: Prisma.InterviewUpdateInput = {};
-    if (dto.transcript !== undefined) {
-      updateData.transcript = dto.transcript;
-    }
-    if (dto.keyTakeaways !== undefined) {
-      updateData.keyTakeaways = JSON.stringify(dto.keyTakeaways);
+    if (dto.stepId !== undefined) {
+      updateData.step = { connect: { id: dto.stepId } };
     }
 
     return this.prisma.interview.update({

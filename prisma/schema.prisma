@@ -115,6 +115,7 @@ model ApplicantProfile {
   applications          JobApplication[]     // Vagas de emprego às quais se candidatou
   
   educationalBackground Education[]
+  profileInterviews     ProfileInterview[]
 }
 
 model Education {
@@ -152,8 +153,6 @@ model JobApplication {
 
 model Interview {
   id            String    @id @default(uuid())
-  transcript    String
-  keyTakeaways  String    @default("[]") // JSON array of strings, max 255 chars each
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
   
@@ -163,5 +162,24 @@ model Interview {
   stepId        String
   step          Step      @relation(fields: [stepId], references: [id], onDelete: Cascade)
   
+  profileInterviews ProfileInterview[]
+  
   @@unique([userId, stepId])
+}
+
+model ProfileInterview {
+  id            String    @id @default(uuid())
+  transcript    String
+  keyTakeaways  String    @default("[]") // JSON array of strings, max 255 chars each
+  startDate     DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  
+  interviewId   String
+  interview     Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  
+  profileId     String
+  profile       ApplicantProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@unique([interviewId, profileId])
 }

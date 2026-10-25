@@ -2,6 +2,7 @@ import { PrismaService } from '../../../prisma/prisma.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InterviewEditService } from '../interview-edit.service.js';
 import { InterviewFindService } from '../interview-find.service.js';
+import { NotFoundException } from '@nestjs/common';
 
 const mockPrisma = {
   interview: {
@@ -31,13 +32,13 @@ describe('InterviewEditService', () => {
   });
 
   describe('update', () => {
-    it('should update transcript only', async () => {
+    it('should update stepId', async () => {
       // Arrange
-      const existingInterview = { id: '1', transcript: 'Old', keyTakeaways: '[]' };
-      const updatedInterview = { ...existingInterview, transcript: 'New' };
+      const existingInterview = { id: '1', stepId: 's1', userId: 1, createdAt: new Date(), updatedAt: new Date() };
+      const updatedInterview = { ...existingInterview, stepId: 's2' };
       mockInterviewFindService.findById.mockResolvedValue(existingInterview);
       mockPrisma.interview.update.mockResolvedValue(updatedInterview);
-      const dto = { transcript: 'New' };
+      const dto = { stepId: 's2' };
 
       // Act
       const result = await service.update('1', dto);
@@ -46,58 +47,39 @@ describe('InterviewEditService', () => {
       expect(mockInterviewFindService.findById).toHaveBeenCalledWith('1');
       expect(mockPrisma.interview.update).toHaveBeenCalledWith({
         where: { id: '1' },
-        data: { transcript: 'New' },
+        data: { step: { connect: { id: 's2' } } },
       });
       expect(result).toEqual(updatedInterview);
     });
 
-    it('should update keyTakeaways only', async () => {
+    it('should not update anything when stepId is not provided', async () => {
       // Arrange
-      const existingInterview = { id: '1', transcript: 'Test', keyTakeaways: '[]' };
-      const updatedInterview = { ...existingInterview, keyTakeaways: '["new"]' };
+      const existingInterview = { id: '1', stepId: 's1', userId: 1, createdAt: new Date(), updatedAt: new Date() };
       mockInterviewFindService.findById.mockResolvedValue(existingInterview);
-      mockPrisma.interview.update.mockResolvedValue(updatedInterview);
-      const dto = { keyTakeaways: ['new'] };
+      mockPrisma.interview.update.mockResolvedValue(existingInterview);
+      const dto = {};
 
       // Act
       const result = await service.update('1', dto);
 
       // Assert
+      expect(mockInterviewFindService.findById).toHaveBeenCalledWith('1');
       expect(mockPrisma.interview.update).toHaveBeenCalledWith({
         where: { id: '1' },
-        data: { keyTakeaways: '["new"]' },
+        data: {},
       });
-      expect(result).toEqual(updatedInterview);
-    });
-
-    it('should update both transcript and keyTakeaways', async () => {
-      // Arrange
-      const existingInterview = { id: '1', transcript: 'Old', keyTakeaways: '[]' };
-      const updatedInterview = { ...existingInterview, transcript: 'New', keyTakeaways: '["takeaway"]' };
-      mockInterviewFindService.findById.mockResolvedValue(existingInterview);
-      mockPrisma.interview.update.mockResolvedValue(updatedInterview);
-      const dto = { transcript: 'New', keyTakeaways: ['takeaway'] };
-
-      // Act
-      const result = await service.update('1', dto);
-
-      // Assert
-      expect(mockPrisma.interview.update).toHaveBeenCalledWith({
-        where: { id: '1' },
-        data: { transcript: 'New', keyTakeaways: '["takeaway"]' },
-      });
-      expect(result).toEqual(updatedInterview);
+      expect(result).toEqual(existingInterview);
     });
 
     it('should throw NotFoundException when interview not found', async () => {
       // Arrange
-      mockInterviewFindService.findById.mockRejectedValue(new Error('Not found'));
+      mockInterviewFindService.findById.mockRejectedValue(new NotFoundException('Not found'));
 
       // Act
-      const promise = service.update('999', { transcript: 'Test' });
+      const promise = service.update('999', { stepId: 's1' });
 
       // Assert
-      await expect(promise).rejects.toThrow();
+      await expect(promise).rejects.toThrow(NotFoundException);
       expect(mockPrisma.interview.update).not.toHaveBeenCalled();
     });
   });

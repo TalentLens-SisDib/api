@@ -11,18 +11,16 @@ export class InterviewCreationService {
     private readonly interviewFindService: InterviewFindService,
   ) {}
 
-  async create(userId: number, stepId: string, dto: CreateInterviewDto): Promise<Interview> {
-    const existing = await this.interviewFindService.findByUserAndStep(userId, stepId);
+  async create(userId: number, dto: CreateInterviewDto): Promise<Interview> {
+    const existing = await this.interviewFindService.findByUserAndStep(userId, dto.stepId);
     if (existing) {
       throw new Error('Interview already exists for this user and step');
     }
 
     return this.prisma.interview.create({
       data: {
-        transcript: dto.transcript,
-        keyTakeaways: JSON.stringify(dto.keyTakeaways || []),
         userId,
-        stepId,
+        stepId: dto.stepId,
       },
     });
   }
