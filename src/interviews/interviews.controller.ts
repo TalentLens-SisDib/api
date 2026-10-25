@@ -100,7 +100,7 @@ export class InterviewsController {
   @ApiOperation({ summary: 'Create an interview for a step (current user)' })
   @ApiParam({ name: 'stepId', description: 'Step identifier (UUID)', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
   @ApiCreatedResponse({ description: 'The created interview', type: InterviewResponseDto })
-  @ApiBadRequestResponse({ description: 'The payload failed validation or interview already exists for this user and step' })
+  @ApiBadRequestResponse({ description: 'The payload failed validation' })
   async create(
     @CurrentUser() requester: AuthPayload,
     @Param('stepId') stepId: string,
