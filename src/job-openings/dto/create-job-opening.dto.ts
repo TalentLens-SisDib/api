@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class JobOpeningSkillDto {
@@ -14,6 +14,7 @@ export class JobOpeningSkillDto {
     description: 'Whether this skill is required for the job',
     example: true,
   })
+  @IsBoolean()
   isRequired!: boolean;
 }
 
