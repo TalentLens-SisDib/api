@@ -41,6 +41,11 @@ describe('InterviewFindService', () => {
       expect(mockPrisma.interview.findMany).toHaveBeenCalledWith({
         where: {},
         orderBy: { createdAt: 'desc' },
+        include: {
+          profileInterviews: {
+            orderBy: { startDate: 'desc' },
+          },
+        },
       });
       expect(result).toEqual(mockInterviews);
     });
@@ -57,6 +62,11 @@ describe('InterviewFindService', () => {
       expect(mockPrisma.interview.findMany).toHaveBeenCalledWith({
         where: { stepId: 's1' },
         orderBy: { createdAt: 'desc' },
+        include: {
+          profileInterviews: {
+            orderBy: { startDate: 'desc' },
+          },
+        },
       });
       expect(result).toEqual(mockInterviews);
     });
@@ -73,6 +83,11 @@ describe('InterviewFindService', () => {
       expect(mockPrisma.interview.findMany).toHaveBeenCalledWith({
         where: { userId: 1 },
         orderBy: { createdAt: 'desc' },
+        include: {
+          profileInterviews: {
+            orderBy: { startDate: 'desc' },
+          },
+        },
       });
       expect(result).toEqual(mockInterviews);
     });
@@ -89,6 +104,11 @@ describe('InterviewFindService', () => {
       expect(mockPrisma.interview.findMany).toHaveBeenCalledWith({
         where: { stepId: 's1', userId: 1 },
         orderBy: { createdAt: 'desc' },
+        include: {
+          profileInterviews: {
+            orderBy: { startDate: 'desc' },
+          },
+        },
       });
       expect(result).toEqual(mockInterviews);
     });
@@ -104,7 +124,14 @@ describe('InterviewFindService', () => {
       const result = await service.findById('1');
 
       // Assert
-      expect(mockPrisma.interview.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrisma.interview.findUnique).toHaveBeenCalledWith({
+      where: { id: '1' },
+      include: {
+        profileInterviews: {
+          orderBy: { startDate: 'desc' },
+        },
+      },
+    });
       expect(result).toEqual(mockInterview);
     });
 

@@ -78,6 +78,9 @@ export class ProfileEditService {
             jobOpening: true,
           },
         },
+        profileInterviews: {
+          orderBy: { startDate: 'desc' },
+        },
       },
     });
   }

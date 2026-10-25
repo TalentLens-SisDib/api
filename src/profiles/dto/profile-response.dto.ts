@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EducationResponseDto } from './education-response.dto.js';
+import { ProfileInterviewResponseDto } from './profile-interview-response.dto.js';
 import { ProfileSkillResponseDto } from './profile-skill-response.dto.js';
 import { ProfileApplicationResponseDto } from './profile-application-response.dto.js';
 
@@ -20,6 +21,9 @@ export class ProfileResponseDto {
 
   @ApiPropertyOptional({ type: [EducationResponseDto] })
   educationalBackground?: EducationResponseDto[];
+
+  @ApiPropertyOptional({ type: [ProfileInterviewResponseDto] })
+  profileInterviews?: ProfileInterviewResponseDto[];
 
   @ApiProperty({ type: [ProfileApplicationResponseDto] })
   applications!: ProfileApplicationResponseDto[];

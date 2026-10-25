@@ -70,6 +70,9 @@ export class ProfileCreationService {
             jobOpening: true,
           },
         },
+        profileInterviews: {
+          orderBy: { startDate: 'desc' },
+        },
       },
     });
   }

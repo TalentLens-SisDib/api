@@ -20,6 +20,9 @@ export class ProfileFindService {
             jobOpening: true,
           },
         },
+        profileInterviews: {
+          orderBy: { startDate: 'desc' },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -39,6 +42,9 @@ export class ProfileFindService {
           include: {
             jobOpening: true,
           },
+        },
+        profileInterviews: {
+          orderBy: { startDate: 'desc' },
         },
       },
     });

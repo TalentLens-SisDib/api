@@ -37,6 +37,7 @@ import { InterviewDeleteService } from './services/interview-delete.service.js';
 import { InterviewEditService } from './services/interview-edit.service.js';
 import { InterviewFindService } from './services/interview-find.service.js';
 import { Interview } from '../generated/prisma/client.js';
+import { InterviewWithRelations } from './services/interview-find.service.js';
 
 @ApiTags('interviews')
 @ApiBearerAuth('bearer')
@@ -51,13 +52,21 @@ export class InterviewsController {
     private readonly interviewDeleteService: InterviewDeleteService,
   ) {}
 
-  private transformInterview(interview: Interview): InterviewResponseDto {
+  private transformInterview(interview: InterviewWithRelations): InterviewResponseDto {
     return {
       id: interview.id,
-      transcript: interview.transcript,
-      keyTakeaways: JSON.parse(interview.keyTakeaways || '[]'),
       userId: interview.userId,
       stepId: interview.stepId,
+      profileInterviews: interview.profileInterviews?.map((pi) => ({
+        id: pi.id,
+        interviewId: pi.interviewId,
+        profileId: pi.profileId,
+        transcript: pi.transcript,
+        keyTakeaways: pi.keyTakeaways,
+        startDate: pi.startDate,
+        createdAt: pi.createdAt,
+        updatedAt: pi.updatedAt,
+      })) ?? [],
       createdAt: interview.createdAt,
       updatedAt: interview.updatedAt,
     };
@@ -107,7 +116,7 @@ export class InterviewsController {
     @Body() dto: CreateInterviewDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<InterviewResponseDto> {
-    const interview = await this.interviewCreationService.create(requester.sub, stepId, dto);
+    const interview = await this.interviewCreationService.create(requester.sub, { ...dto, stepId });
     res.setHeader('Location', `/steps/${stepId}/interviews/${interview.id}`);
     return this.transformInterview(interview);
   }
