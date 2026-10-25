@@ -12,7 +12,8 @@ export function buildOpenApiConfig(): Omit<OpenAPIObject, 'paths'> {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        description: 'Access token returned by POST /login',
+        description:
+          'Access token returned by POST /login or /login/refresh; refresh token is used only by /login/refresh',
       },
       'bearer',
     )

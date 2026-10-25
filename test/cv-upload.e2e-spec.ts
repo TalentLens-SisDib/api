@@ -10,6 +10,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { AppModule } from '../src/app.module.js';
 import { hashPassword } from '../src/common/password.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { SkillsService } from '../src/profiles/services/skills.service.js';
 
 describe('Authenticated CV upload and persistence', () => {
   let app: INestApplication;
@@ -80,10 +81,35 @@ describe('Authenticated CV upload and persistence', () => {
       where: { id: upload.body.id }, include: { skills: true, educationalBackground: true },
     });
     expect(saved.skills).toHaveLength(2);
+    expect(saved.skills.every((skill) => skill.profileId === saved.id)).toBe(true);
     expect(saved.educationalBackground).toHaveLength(1);
+    expect(saved.educationalBackground.every((education) => education.profileId === saved.id)).toBe(true);
     const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
     expect(body.messages[1].content).toContain(profile.name);
     expect(body.provider.require_parameters).toBe(true);
+  });
+
+  it('rolls back profile, education, and new skill writes when persistence fails mid-transaction', async () => {
+    const counts = async () => Promise.all([prisma.applicantProfile.count(), prisma.skill.count(), prisma.education.count()]);
+    const before = await counts();
+    fetchMock.mockResolvedValue(Response.json({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify({
+      ...profile, skills: ['Rollback-only skill'],
+    }) } }] }));
+    const skillsService = app.get(SkillsService);
+    const createSkills = skillsService.upsertSkills.bind(skillsService);
+    const upsert = vi.spyOn(skillsService, 'upsertSkills').mockImplementation(async (...args) => {
+      await createSkills(...args);
+      throw new Error('simulated persistence failure');
+    });
+
+    try {
+      await request(app.getHttpServer()).post('/profiles/upload-cv')
+        .auth(token, { type: 'bearer' }).attach('cv', fixture).expect(500);
+    } finally {
+      upsert.mockRestore();
+    }
+
+    expect(await counts()).toEqual(before);
   });
 
   it('rejects classification output without saving partial profile, skill or education records', async () => {
