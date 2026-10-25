@@ -7,7 +7,10 @@ import { InterviewWithRelations } from './interview-find.service.js';
 
 @Injectable()
 export class InterviewCreationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly interviewFindService: InterviewFindService,
+  ) {}
 
   async create(userId: number, dto: CreateInterviewDto): Promise<InterviewWithRelations> {
     const existing = await this.interviewFindService.findByUserAndStep(userId, dto.stepId);
