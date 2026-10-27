@@ -1,3 +1,4 @@
+import { ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StepEditService } from '../step-edit.service.js';
@@ -86,9 +87,8 @@ describe('StepEditService', () => {
       const promise = service.update('1', dto);
 
       // Assert
-      await expect(promise).rejects.toThrow(
-        'Step with order 2 already exists for this job opening',
-      );
+      await expect(promise).rejects.toThrow(ConflictException);
+      await expect(promise).rejects.toThrow('Step with order 2 already exists for this job opening');
       expect(mockPrisma.step.update).not.toHaveBeenCalled();
     });
 

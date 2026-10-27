@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  NotFoundException,
   Post,
   Res,
   UseGuards,
@@ -14,6 +15,7 @@ import {
 import {
   ApiBearerAuth,
   ApiBadRequestResponse,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -83,7 +85,7 @@ export class StepsController {
   async findOne(@Param('jobOpeningId') jobOpeningId: string, @Param('id') id: string): Promise<StepResponseDto> {
     const step = await this.stepFindService.findById(id);
     if (step.jobOpeningId !== jobOpeningId) {
-      throw new Error('Step does not belong to this job opening');
+      throw new NotFoundException(`Step with id ${id} not found in job opening ${jobOpeningId}`);
     }
     return this.transformStep(step);
   }
@@ -92,7 +94,8 @@ export class StepsController {
   @ApiOperation({ summary: 'Create a step for a job opening' })
   @ApiParam({ name: 'jobOpeningId', description: 'Job opening identifier (UUID)', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
   @ApiCreatedResponse({ description: 'The created step', type: StepResponseDto })
-  @ApiBadRequestResponse({ description: 'The payload failed validation or step order already exists' })
+  @ApiBadRequestResponse({ description: 'The payload failed validation' })
+  @ApiConflictResponse({ description: 'Another step of this job opening already has that order' })
   async create(
     @CurrentUser() requester: AuthPayload,
     @Param('jobOpeningId') jobOpeningId: string,
@@ -110,7 +113,8 @@ export class StepsController {
   @ApiParam({ name: 'jobOpeningId', description: 'Job opening identifier (UUID)', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
   @ApiParam({ name: 'id', description: 'Step identifier (UUID)', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
   @ApiOkResponse({ description: 'The updated step', type: StepResponseDto })
-  @ApiBadRequestResponse({ description: 'The payload failed validation or step order already exists' })
+  @ApiBadRequestResponse({ description: 'The payload failed validation' })
+  @ApiConflictResponse({ description: 'Another step of this job opening already has that order' })
   @ApiNotFoundResponse({ description: 'No step exists with that id' })
   async update(
     @CurrentUser() requester: AuthPayload,
@@ -118,10 +122,11 @@ export class StepsController {
     @Param('id') id: string,
     @Body() dto: UpdateStepDto,
   ): Promise<StepResponseDto> {
-    const step = await this.stepEditService.update(id, dto);
-    if (step.jobOpeningId !== jobOpeningId) {
-      throw new Error('Step does not belong to this job opening');
+    const existing = await this.stepFindService.findById(id);
+    if (existing.jobOpeningId !== jobOpeningId) {
+      throw new NotFoundException(`Step with id ${id} not found in job opening ${jobOpeningId}`);
     }
+    const step = await this.stepEditService.update(id, dto);
     return this.transformStep(step);
   }
 
@@ -140,7 +145,7 @@ export class StepsController {
   ): Promise<void> {
     const step = await this.stepFindService.findById(id);
     if (step.jobOpeningId !== jobOpeningId) {
-      throw new Error('Step does not belong to this job opening');
+      throw new NotFoundException(`Step with id ${id} not found in job opening ${jobOpeningId}`);
     }
     return this.stepDeleteService.remove(id);
   }

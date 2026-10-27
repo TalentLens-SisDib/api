@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Step } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateStepDto } from '../dto/create-step.dto.js';
@@ -14,7 +14,7 @@ export class StepCreationService {
   async create(jobOpeningId: string, dto: CreateStepDto): Promise<Step> {
     const existingStep = await this.stepFindService.findByJobOpeningAndOrder(jobOpeningId, dto.order);
     if (existingStep) {
-      throw new Error(`Step with order ${dto.order} already exists for this job opening`);
+      throw new ConflictException(`Step with order ${dto.order} already exists for this job opening`);
     }
 
     return this.prisma.step.create({
