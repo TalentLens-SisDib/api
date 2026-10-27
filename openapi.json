@@ -1203,6 +1203,295 @@
         ]
       }
     },
+    "/profiles/{id}/add-interview": {
+      "post": {
+        "operationId": "ProfilesController_addInterview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Profile identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddProfileInterviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created profile interview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileInterviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation, or the profile has not applied to the job opening of the interview step"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The interview belongs to another user"
+          },
+          "404": {
+            "description": "Profile or interview not found"
+          },
+          "409": {
+            "description": "The profile already has a record in this interview"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record the transcript of a candidate in an interview (only the interview owner)",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/profiles/{id}/interviews": {
+      "get": {
+        "operationId": "ProfilesController_findInterviews",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Profile identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The interview records of the profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileInterviewResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No profile exists with that id"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List the interview records of a profile",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/profiles/{id}/interviews/{profileInterviewId}": {
+      "get": {
+        "operationId": "ProfilesController_findInterview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Profile identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileInterviewId",
+            "required": true,
+            "in": "path",
+            "description": "Profile interview record identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The interview record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileInterviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id or profileInterviewId is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No interview record with that id exists for this profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get one interview record of a profile",
+        "tags": [
+          "profiles"
+        ]
+      },
+      "patch": {
+        "operationId": "ProfilesController_updateInterview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Profile identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileInterviewId",
+            "required": true,
+            "in": "path",
+            "description": "Profile interview record identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileInterviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated interview record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileInterviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation or an id is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The interview belongs to another user"
+          },
+          "404": {
+            "description": "No interview record with that id exists for this profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an interview record of a profile (only the interview owner)",
+        "tags": [
+          "profiles"
+        ]
+      },
+      "delete": {
+        "operationId": "ProfilesController_removeInterview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Profile identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileInterviewId",
+            "required": true,
+            "in": "path",
+            "description": "Profile interview record identifier (UUID)",
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The interview record was deleted"
+          },
+          "400": {
+            "description": "The id or profileInterviewId is not a valid UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The interview belongs to another user"
+          },
+          "404": {
+            "description": "No interview record with that id exists for this profile"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an interview record of a profile (only the interview owner)",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
     "/job-openings/{jobOpeningId}/steps": {
       "get": {
         "operationId": "StepsController_findAll",
@@ -1285,10 +1574,13 @@
             }
           },
           "400": {
-            "description": "The payload failed validation or step order already exists"
+            "description": "The payload failed validation"
           },
           "401": {
             "description": "Missing, invalid or expired token"
+          },
+          "409": {
+            "description": "Another step of this job opening already has that order"
           }
         },
         "security": [
@@ -1404,13 +1696,16 @@
             }
           },
           "400": {
-            "description": "The payload failed validation or step order already exists"
+            "description": "The payload failed validation"
           },
           "401": {
             "description": "Missing, invalid or expired token"
           },
           "404": {
             "description": "No step exists with that id"
+          },
+          "409": {
+            "description": "Another step of this job opening already has that order"
           }
         },
         "security": [
@@ -1523,7 +1818,7 @@
             "bearer": []
           }
         ],
-        "summary": "List all interviews for a step (or all interviews for current user)",
+        "summary": "List all interviews for a step (optionally only the current user ones)",
         "tags": [
           "interviews"
         ]
@@ -1564,10 +1859,13 @@
             }
           },
           "400": {
-            "description": "The payload failed validation"
+            "description": "The stepId is not a valid UUID or the payload has unknown properties"
           },
           "401": {
             "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "No step exists with that id"
           }
         },
         "security": [
@@ -1575,7 +1873,7 @@
             "bearer": []
           }
         ],
-        "summary": "Create an interview for a step (current user)",
+        "summary": "Create an interview for a step (current user). A user may have several interviews per step.",
         "tags": [
           "interviews"
         ]
@@ -1618,13 +1916,13 @@
             }
           },
           "400": {
-            "description": "The id is not a valid UUID"
+            "description": "The stepId or id is not a valid UUID"
           },
           "401": {
             "description": "Missing, invalid or expired token"
           },
           "404": {
-            "description": "No interview exists with that id"
+            "description": "No interview with that id exists in this step"
           }
         },
         "security": [
@@ -1683,13 +1981,16 @@
             }
           },
           "400": {
-            "description": "The payload failed validation"
+            "description": "The stepId or id is not a valid UUID or the payload has unknown properties"
           },
           "401": {
             "description": "Missing, invalid or expired token"
           },
+          "403": {
+            "description": "The interview belongs to another user"
+          },
           "404": {
-            "description": "No interview exists with that id"
+            "description": "No interview with that id exists in this step"
           }
         },
         "security": [
@@ -1697,7 +1998,7 @@
             "bearer": []
           }
         ],
-        "summary": "Update an interview (only owner)",
+        "summary": "Update an interview (only owner). Transcripts are edited per candidate under /profiles.",
         "tags": [
           "interviews"
         ]
@@ -1731,13 +2032,16 @@
             "description": "The interview was deleted"
           },
           "400": {
-            "description": "The id is not a valid UUID"
+            "description": "The stepId or id is not a valid UUID"
           },
           "401": {
             "description": "Missing, invalid or expired token"
           },
+          "403": {
+            "description": "The interview belongs to another user"
+          },
           "404": {
-            "description": "No interview exists with that id"
+            "description": "No interview with that id exists in this step"
           }
         },
         "security": [
@@ -1745,7 +2049,7 @@
             "bearer": []
           }
         ],
-        "summary": "Delete an interview (only owner)",
+        "summary": "Delete an interview and its candidate records (only owner)",
         "tags": [
           "interviews"
         ]
@@ -2084,6 +2388,28 @@
           "isRequired"
         ]
       },
+      "JobOpeningCulturalFitResponseDto": {
+        "type": "object",
+        "properties": {
+          "culturalFitId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "culturalFitName": {
+            "type": "string",
+            "example": "Collaborative"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "culturalFitId",
+          "culturalFitName",
+          "isRequired"
+        ]
+      },
       "JobOpeningResponseDto": {
         "type": "object",
         "properties": {
@@ -2119,6 +2445,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/JobOpeningSkillResponseDto"
+            }
+          },
+          "culturalFits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobOpeningCulturalFitResponseDto"
             }
           },
           "createdAt": {
@@ -2203,6 +2535,25 @@
           "isRequired"
         ]
       },
+      "JobOpeningCulturalFitDto": {
+        "type": "object",
+        "properties": {
+          "culturalFitId": {
+            "type": "string",
+            "description": "Cultural Fit ID (UUID)",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "description": "Whether this cultural fit is required for the job",
+            "example": true
+          }
+        },
+        "required": [
+          "culturalFitId",
+          "isRequired"
+        ]
+      },
       "CreateJobOpeningDto": {
         "type": "object",
         "properties": {
@@ -2240,6 +2591,23 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/JobOpeningSkillDto"
+            }
+          },
+          "culturalFits": {
+            "description": "List of required/preferred cultural fits for this job opening",
+            "example": [
+              {
+                "culturalFitId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "isRequired": true
+              },
+              {
+                "culturalFitId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                "isRequired": false
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobOpeningCulturalFitDto"
             }
           }
         },
@@ -2287,6 +2655,23 @@
             "items": {
               "$ref": "#/components/schemas/JobOpeningSkillDto"
             }
+          },
+          "culturalFits": {
+            "description": "New list of required/preferred cultural fits for this job opening (replaces existing)",
+            "example": [
+              {
+                "culturalFitId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "isRequired": true
+              },
+              {
+                "culturalFitId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                "isRequired": false
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobOpeningCulturalFitDto"
+            }
           }
         }
       },
@@ -2305,6 +2690,23 @@
         "required": [
           "skillId",
           "skillName"
+        ]
+      },
+      "ProfileCulturalFitResponseDto": {
+        "type": "object",
+        "properties": {
+          "culturalFitId": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "culturalFitName": {
+            "type": "string",
+            "example": "Collaborative"
+          }
+        },
+        "required": [
+          "culturalFitId",
+          "culturalFitName"
         ]
       },
       "EducationResponseDto": {
@@ -2345,6 +2747,64 @@
           "profileId"
         ]
       },
+      "ProfileInterviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Profile interview identifier",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "interviewId": {
+            "type": "string",
+            "description": "Interview identifier",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "profileId": {
+            "type": "string",
+            "description": "Profile identifier",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "transcript": {
+            "type": "string",
+            "description": "Interview transcript",
+            "example": "Candidate discussed their experience with React and Node.js..."
+          },
+          "keyTakeaways": {
+            "type": "string",
+            "description": "Key takeaways from the interview (JSON array of strings)",
+            "example": "[\"Strong React skills\", \"Good system design understanding\"]"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Interview start date",
+            "example": "2024-01-15T10:30:00.000Z"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp",
+            "example": "2024-01-15T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp",
+            "example": "2024-01-15T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "interviewId",
+          "profileId",
+          "transcript",
+          "keyTakeaways",
+          "startDate",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "ProfileJobOpeningResponseDto": {
         "type": "object",
         "properties": {
@@ -2367,6 +2827,12 @@
           "userId": {
             "type": "number",
             "example": 1
+          },
+          "culturalFits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobOpeningCulturalFitResponseDto"
+            }
           },
           "createdAt": {
             "format": "date-time",
@@ -2442,10 +2908,22 @@
               "$ref": "#/components/schemas/ProfileSkillResponseDto"
             }
           },
+          "culturalFits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileCulturalFitResponseDto"
+            }
+          },
           "educationalBackground": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/EducationResponseDto"
+            }
+          },
+          "profileInterviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileInterviewResponseDto"
             }
           },
           "applications": {
@@ -2532,6 +3010,18 @@
               "type": "string"
             }
           },
+          "culturalFits": {
+            "description": "List of cultural fit names for this profile",
+            "example": [
+              "Collaborative",
+              "Innovative",
+              "Growth mindset"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "educationalBackground": {
             "description": "Education records extracted from the candidate CV",
             "type": "array",
@@ -2543,6 +3033,68 @@
         "required": [
           "name"
         ]
+      },
+      "AddProfileInterviewDto": {
+        "type": "object",
+        "properties": {
+          "interviewId": {
+            "type": "string",
+            "description": "Interview ID to associate with the profile. The profile must have applied to the job opening of the interview step.",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "transcript": {
+            "type": "string",
+            "description": "Interview transcript",
+            "example": "Candidate discussed their experience with React and Node.js..."
+          },
+          "keyTakeaways": {
+            "description": "Key takeaways from the interview (array of strings, max 255 chars each)",
+            "example": [
+              "Strong React skills",
+              "Good system design understanding",
+              "Needs improvement in testing"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Interview start date in ISO 8601 (defaults to current date/time)",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "interviewId",
+          "transcript"
+        ]
+      },
+      "UpdateProfileInterviewDto": {
+        "type": "object",
+        "properties": {
+          "transcript": {
+            "type": "string",
+            "description": "Interview transcript",
+            "example": "Candidate discussed their experience with React and Node.js..."
+          },
+          "keyTakeaways": {
+            "description": "Key takeaways from the interview (array of strings, max 255 chars each). Replaces the current list.",
+            "example": [
+              "Strong React skills",
+              "Good system design understanding"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Interview start date in ISO 8601",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        }
       },
       "UpdateProfileDto": {
         "type": "object",
@@ -2566,6 +3118,18 @@
               "TypeScript",
               "React",
               "Node.js"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "culturalFits": {
+            "description": "New list of cultural fit names for this profile (replaces existing)",
+            "example": [
+              "Collaborative",
+              "Innovative",
+              "Growth mindset"
             ],
             "type": "array",
             "items": {
@@ -2683,20 +3247,6 @@
             "type": "string",
             "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
           },
-          "transcript": {
-            "type": "string",
-            "example": "Candidate discussed their experience with React and Node.js..."
-          },
-          "keyTakeaways": {
-            "example": [
-              "Strong React skills",
-              "Good system design understanding"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "userId": {
             "type": "number",
             "example": 1
@@ -2704,6 +3254,12 @@
           "stepId": {
             "type": "string",
             "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "profileInterviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileInterviewResponseDto"
+            }
           },
           "createdAt": {
             "format": "date-time",
@@ -2718,8 +3274,6 @@
         },
         "required": [
           "id",
-          "transcript",
-          "keyTakeaways",
           "userId",
           "stepId",
           "createdAt",
@@ -2728,50 +3282,11 @@
       },
       "CreateInterviewDto": {
         "type": "object",
-        "properties": {
-          "transcript": {
-            "type": "string",
-            "description": "Interview transcript",
-            "example": "Candidate discussed their experience with React and Node.js..."
-          },
-          "keyTakeaways": {
-            "description": "Key takeaways from the interview (array of strings, max 255 chars each)",
-            "example": [
-              "Strong React skills",
-              "Good system design understanding",
-              "Needs improvement in testing"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "transcript"
-        ]
+        "properties": {}
       },
       "UpdateInterviewDto": {
         "type": "object",
-        "properties": {
-          "transcript": {
-            "type": "string",
-            "description": "Interview transcript",
-            "example": "Candidate discussed their experience with React and Node.js..."
-          },
-          "keyTakeaways": {
-            "description": "Key takeaways from the interview (array of strings, max 255 chars each)",
-            "example": [
-              "Strong React skills",
-              "Good system design understanding",
-              "Needs improvement in testing"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
+        "properties": {}
       }
     }
   }
