@@ -40,14 +40,11 @@ export class InterviewFindService {
     return interview;
   }
 
-  async findByUserAndStep(userId: number, stepId: string): Promise<InterviewWithRelations | null> {
-    return this.prisma.interview.findFirst({
-      where: { userId, stepId },
-      include: {
-        profileInterviews: {
-          orderBy: { startDate: 'desc' },
-        },
-      },
-    });
+  async findInStep(id: string, stepId: string): Promise<InterviewWithRelations> {
+    const interview = await this.findById(id);
+    if (interview.stepId !== stepId) {
+      throw new NotFoundException(`Interview with id ${id} not found in step ${stepId}`);
+    }
+    return interview;
   }
 }

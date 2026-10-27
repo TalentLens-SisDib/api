@@ -146,4 +146,29 @@ describe('InterviewFindService', () => {
       await expect(promise).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('findInStep', () => {
+    it('should return the interview when it belongs to the step', async () => {
+      // Arrange
+      const mockInterview = { id: '1', stepId: 's1', userId: 1, profileInterviews: [] };
+      mockPrisma.interview.findUnique.mockResolvedValue(mockInterview);
+
+      // Act
+      const result = await service.findInStep('1', 's1');
+
+      // Assert
+      expect(result).toEqual(mockInterview);
+    });
+
+    it('should throw NotFoundException when the interview belongs to another step', async () => {
+      // Arrange
+      mockPrisma.interview.findUnique.mockResolvedValue({ id: '1', stepId: 's2', userId: 1, profileInterviews: [] });
+
+      // Act
+      const promise = service.findInStep('1', 's1');
+
+      // Assert
+      await expect(promise).rejects.toThrow(NotFoundException);
+    });
+  });
 });

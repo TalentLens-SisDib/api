@@ -7,7 +7,6 @@ import { NotFoundException } from '@nestjs/common';
 const mockPrisma = {
   interview: {
     update: vi.fn(),
-    findUnique: vi.fn(),
   },
 };
 
@@ -32,46 +31,20 @@ describe('InterviewEditService', () => {
   });
 
   describe('update', () => {
-    it('should update stepId', async () => {
+    it('should only touch updatedAt, never the step', async () => {
       // Arrange
-      const existingInterview = { id: '1', stepId: 's1', userId: 1, createdAt: new Date(), updatedAt: new Date() };
-      const updatedInterview = { ...existingInterview, stepId: 's2' };
-      mockInterviewFindService.findById.mockResolvedValue(existingInterview);
-      mockPrisma.interview.update.mockResolvedValue(updatedInterview);
-      const dto = { stepId: 's2' };
-
-      // Act
-      const result = await service.update('1', dto);
-
-      // Assert
-      expect(mockInterviewFindService.findById).toHaveBeenCalledWith('1');
-      expect(mockPrisma.interview.update).toHaveBeenCalledWith({
-        where: { id: '1' },
-        data: { step: { connect: { id: 's2' } } },
-        include: {
-          profileInterviews: {
-            orderBy: { startDate: 'desc' },
-          },
-        },
-      });
-      expect(result).toEqual(updatedInterview);
-    });
-
-    it('should not update anything when stepId is not provided', async () => {
-      // Arrange
-      const existingInterview = { id: '1', stepId: 's1', userId: 1, createdAt: new Date(), updatedAt: new Date() };
+      const existingInterview = { id: '1', stepId: 's1', userId: 1, profileInterviews: [] };
       mockInterviewFindService.findById.mockResolvedValue(existingInterview);
       mockPrisma.interview.update.mockResolvedValue(existingInterview);
-      const dto = {};
 
       // Act
-      const result = await service.update('1', dto);
+      const result = await service.update('1');
 
       // Assert
       expect(mockInterviewFindService.findById).toHaveBeenCalledWith('1');
       expect(mockPrisma.interview.update).toHaveBeenCalledWith({
         where: { id: '1' },
-        data: {},
+        data: { updatedAt: expect.any(Date) },
         include: {
           profileInterviews: {
             orderBy: { startDate: 'desc' },
@@ -86,7 +59,7 @@ describe('InterviewEditService', () => {
       mockInterviewFindService.findById.mockRejectedValue(new NotFoundException('Not found'));
 
       // Act
-      const promise = service.update('999', { stepId: 's1' });
+      const promise = service.update('999');
 
       // Assert
       await expect(promise).rejects.toThrow(NotFoundException);

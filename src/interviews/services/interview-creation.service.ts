@@ -1,28 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { Interview } from '../../generated/prisma/client.js';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { CreateInterviewDto } from '../dto/create-interview.dto.js';
-import { InterviewFindService } from './interview-find.service.js';
 import { InterviewWithRelations } from './interview-find.service.js';
 
 @Injectable()
 export class InterviewCreationService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly interviewFindService: InterviewFindService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: number, dto: CreateInterviewDto): Promise<InterviewWithRelations> {
-    const existing = await this.interviewFindService.findByUserAndStep(userId, dto.stepId);
-    if (existing) {
-      throw new Error('Interview already exists for this user and step');
+  async create(userId: number, stepId: string): Promise<InterviewWithRelations> {
+    const step = await this.prisma.step.findUnique({ where: { id: stepId } });
+    if (!step) {
+      throw new NotFoundException(`Step with id ${stepId} not found`);
     }
 
     return this.prisma.interview.create({
-      data: {
-        userId,
-        stepId: dto.stepId,
-      },
+      data: { userId, stepId },
       include: {
         profileInterviews: {
           orderBy: { startDate: 'desc' },
