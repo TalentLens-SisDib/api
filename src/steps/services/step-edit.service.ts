@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Step } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UpdateStepDto } from '../dto/update-step.dto.js';
@@ -18,7 +18,7 @@ export class StepEditService {
       const step = await this.stepFindService.findById(id);
       const existingStep = await this.stepFindService.findByJobOpeningAndOrder(step.jobOpeningId, dto.order);
       if (existingStep && existingStep.id !== id) {
-        throw new Error(`Step with order ${dto.order} already exists for this job opening`);
+        throw new ConflictException(`Step with order ${dto.order} already exists for this job opening`);
       }
     }
 

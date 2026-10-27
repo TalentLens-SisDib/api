@@ -198,8 +198,20 @@ model Interview {
   step          Step      @relation(fields: [stepId], references: [id], onDelete: Cascade)
   
   profileInterviews ProfileInterview[]
-  
-  @@unique([userId, stepId])
+}
+
+// Transcrições de Interview anteriores ao modelo por candidato que não puderam
+// ser atribuídas a um perfil. Fora do Prisma Client; só para recuperação manual.
+model InterviewTranscriptBackup {
+  interviewId  String   @id
+  userId       Int
+  stepId       String
+  transcript   String
+  keyTakeaways String
+  createdAt    DateTime
+  backedUpAt   DateTime @default(now())
+
+  @@ignore
 }
 
 model ProfileInterview {

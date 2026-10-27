@@ -1,9 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsArray, IsDateString, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class AddProfileInterviewDto {
   @ApiProperty({
-    description: 'Interview ID to associate with the profile',
+    description: 'Interview ID to associate with the profile. The profile must have applied to the job opening of the interview step.',
     example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   })
   @IsUUID()
@@ -29,10 +29,10 @@ export class AddProfileInterviewDto {
   keyTakeaways?: string[];
 
   @ApiPropertyOptional({
-    description: 'Interview start date (defaults to current date/time)',
+    description: 'Interview start date in ISO 8601 (defaults to current date/time)',
     example: '2024-01-15T10:30:00Z',
   })
   @IsOptional()
-  @IsString()
+  @IsDateString()
   startDate?: string;
 }

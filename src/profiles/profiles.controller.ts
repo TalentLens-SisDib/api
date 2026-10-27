@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Res,
@@ -21,6 +22,7 @@ import {
   ApiConflictResponse,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -48,6 +50,14 @@ import { ProfileFindService } from './services/profile-find.service.js';
 import { ProfileInterviewService } from './services/profile-interview.service.js';
 import { AddProfileInterviewDto } from './dto/add-profile-interview.dto.js';
 import { ProfileInterviewResponseDto } from './dto/profile-interview-response.dto.js';
+import { UpdateProfileInterviewDto } from './dto/update-profile-interview.dto.js';
+
+const PROFILE_ID_PARAM = { name: 'id', description: 'Profile identifier (UUID)', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' };
+const PROFILE_INTERVIEW_ID_PARAM = {
+  name: 'profileInterviewId',
+  description: 'Profile interview record identifier (UUID)',
+  example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+};
 
 @ApiTags('profiles')
 @ApiBearerAuth('bearer')
@@ -173,21 +183,83 @@ export class ProfilesController {
 
   @Post(':id/add-interview')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Add an interview to a profile' })
-  @ApiParam({ name: 'id', description: 'Profile identifier (UUID)', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
+  @ApiOperation({ summary: 'Record the transcript of a candidate in an interview (only the interview owner)' })
+  @ApiParam(PROFILE_ID_PARAM)
   @ApiCreatedResponse({ description: 'The created profile interview', type: ProfileInterviewResponseDto })
-  @ApiBadRequestResponse({ description: 'The payload failed validation' })
+  @ApiBadRequestResponse({ description: 'The payload failed validation, or the profile has not applied to the job opening of the interview step' })
+  @ApiForbiddenResponse({ description: 'The interview belongs to another user' })
   @ApiNotFoundResponse({ description: 'Profile or interview not found' })
-  @ApiConflictResponse({ description: 'Interview already associated with this profile' })
+  @ApiConflictResponse({ description: 'The profile already has a record in this interview' })
   async addInterview(
     @CurrentUser() requester: AuthPayload,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddProfileInterviewDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileInterviewResponseDto> {
-    const profileInterview = await this.profileInterviewService.addInterviewToProfile(id, dto);
+    const profileInterview = await this.profileInterviewService.addInterviewToProfile(requester, id, dto);
     res.setHeader('Location', `/profiles/${id}/interviews/${profileInterview.id}`);
     return profileInterview;
+  }
+
+  @Get(':id/interviews')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List the interview records of a profile' })
+  @ApiParam(PROFILE_ID_PARAM)
+  @ApiOkResponse({ description: 'The interview records of the profile', type: [ProfileInterviewResponseDto] })
+  @ApiBadRequestResponse({ description: 'The id is not a valid UUID' })
+  @ApiNotFoundResponse({ description: 'No profile exists with that id' })
+  async findInterviews(@Param('id', new ParseUUIDPipe()) id: string): Promise<ProfileInterviewResponseDto[]> {
+    return this.profileInterviewService.findByProfile(id);
+  }
+
+  @Get(':id/interviews/:profileInterviewId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get one interview record of a profile' })
+  @ApiParam(PROFILE_ID_PARAM)
+  @ApiParam(PROFILE_INTERVIEW_ID_PARAM)
+  @ApiOkResponse({ description: 'The interview record', type: ProfileInterviewResponseDto })
+  @ApiBadRequestResponse({ description: 'The id or profileInterviewId is not a valid UUID' })
+  @ApiNotFoundResponse({ description: 'No interview record with that id exists for this profile' })
+  async findInterview(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileInterviewId', new ParseUUIDPipe()) profileInterviewId: string,
+  ): Promise<ProfileInterviewResponseDto> {
+    return this.profileInterviewService.findOne(id, profileInterviewId);
+  }
+
+  @Patch(':id/interviews/:profileInterviewId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update an interview record of a profile (only the interview owner)' })
+  @ApiParam(PROFILE_ID_PARAM)
+  @ApiParam(PROFILE_INTERVIEW_ID_PARAM)
+  @ApiOkResponse({ description: 'The updated interview record', type: ProfileInterviewResponseDto })
+  @ApiBadRequestResponse({ description: 'The payload failed validation or an id is not a valid UUID' })
+  @ApiForbiddenResponse({ description: 'The interview belongs to another user' })
+  @ApiNotFoundResponse({ description: 'No interview record with that id exists for this profile' })
+  async updateInterview(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileInterviewId', new ParseUUIDPipe()) profileInterviewId: string,
+    @Body() dto: UpdateProfileInterviewDto,
+  ): Promise<ProfileInterviewResponseDto> {
+    return this.profileInterviewService.update(requester, id, profileInterviewId, dto);
+  }
+
+  @Delete(':id/interviews/:profileInterviewId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete an interview record of a profile (only the interview owner)' })
+  @ApiParam(PROFILE_ID_PARAM)
+  @ApiParam(PROFILE_INTERVIEW_ID_PARAM)
+  @ApiNoContentResponse({ description: 'The interview record was deleted' })
+  @ApiBadRequestResponse({ description: 'The id or profileInterviewId is not a valid UUID' })
+  @ApiForbiddenResponse({ description: 'The interview belongs to another user' })
+  @ApiNotFoundResponse({ description: 'No interview record with that id exists for this profile' })
+  async removeInterview(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileInterviewId', new ParseUUIDPipe()) profileInterviewId: string,
+  ): Promise<void> {
+    return this.profileInterviewService.remove(requester, id, profileInterviewId);
   }
 
   @Patch(':id')
