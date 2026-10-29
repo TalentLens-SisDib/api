@@ -87,9 +87,10 @@ export class ProfilesController {
     }));
   }
 
-  private transformProfile(profile: ProfileWithRelations): ProfileResponseDto {
+  private transformProfile(profile: ProfileWithRelations, qualityIssues?: string[]): ProfileResponseDto {
     return {
       ...profile,
+      ...(qualityIssues !== undefined && { qualityIssues }),
       skills: this.transformSkills(profile.skills),
       culturalFits: this.transformCulturalFits(profile.culturalFits ?? []),
       educationalBackground: profile.educationalBackground.map(({ id, institution, degree, startDate, endDate, profileId }) => ({
@@ -176,9 +177,9 @@ export class ProfilesController {
     @UploadedFile(CvFilePipe) file: Express.Multer.File,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileResponseDto> {
-    const profile = await this.profileCreationService.createFromCv(file);
+    const { qualityIssues, ...profile } = await this.profileCreationService.createFromCv(file);
     res.setHeader('Location', `/profiles/${profile.id}`);
-    return this.transformProfile(profile);
+    return this.transformProfile(profile, qualityIssues);
   }
 
   @Post(':id/add-interview')

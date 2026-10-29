@@ -16,6 +16,7 @@ describe('Authenticated CV upload and persistence', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let token: string;
+  let userId: number;
   const databasePath = join(tmpdir(), `talentlens-cv-${randomUUID()}.db`);
   const fixture = join(process.cwd(), 'test/fixtures/curriculo-mock-ptbr.pdf');
   const fetchMock = vi.fn<typeof fetch>();
@@ -44,10 +45,11 @@ describe('Authenticated CV upload and persistence', () => {
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     await app.init();
     prisma = app.get(PrismaService);
-    await prisma.user.create({ data: {
+    const user = await prisma.user.create({ data: {
       email: 'cv-test@example.invalid', name: 'Test Recruiter', password: await hashPassword('test-password'),
       company: { create: { name: 'CV test company' } },
     } });
+    userId = user.id;
     const login = await request(app.getHttpServer()).post('/login')
       .send({ email: 'cv-test@example.invalid', password: 'test-password' }).expect(200);
     token = login.body.accessToken;
@@ -69,6 +71,7 @@ describe('Authenticated CV upload and persistence', () => {
       .auth(token, { type: 'bearer' }).attach('cv', fixture).expect(201);
     expect(upload.headers.location).toBe(`/profiles/${upload.body.id}`);
     expect(upload.body.name).toBe(profile.name);
+    expect(upload.body.qualityIssues).toEqual(expect.any(Array));
     expect(upload.body.skills.map((s: { skillName: string }) => s.skillName).sort()).toEqual(['React', 'TypeScript']);
     expect(upload.body.educationalBackground[0]).toMatchObject({
       institution: profile.educationalBackground[0].institution,
@@ -76,7 +79,8 @@ describe('Authenticated CV upload and persistence', () => {
     });
     const read = await request(app.getHttpServer()).get(upload.headers.location)
       .auth(token, { type: 'bearer' }).expect(200);
-    expect(read.body).toEqual(upload.body);
+    const { qualityIssues: _qualityIssues, ...importedProfile } = upload.body;
+    expect(read.body).toEqual(importedProfile);
     const saved = await prisma.applicantProfile.findUniqueOrThrow({
       where: { id: upload.body.id }, include: { skills: true, educationalBackground: true },
     });
@@ -124,5 +128,105 @@ describe('Authenticated CV upload and persistence', () => {
   it('requires authentication before contacting the provider', async () => {
     await request(app.getHttpServer()).post('/profiles/upload-cv').expect(401);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('creates, displays, edits and persists a structured candidate profile', async () => {
+    const created = await request(app.getHttpServer()).post('/profiles')
+      .auth(token, { type: 'bearer' })
+      .send({
+        name: 'Ana Souza',
+        description: 'Backend developer',
+        skills: ['TypeScript', 'Node.js'],
+        culturalFits: ['Collaborative'],
+        educationalBackground: [{
+          institution: 'Universidade de Teste', degree: 'Computação',
+          startDate: '2020-02-01', endDate: '2024-12-01',
+        }],
+      })
+      .expect(201);
+
+    expect(created.body).toMatchObject({
+      name: 'Ana Souza',
+      skills: expect.arrayContaining([
+        expect.objectContaining({ skillName: 'TypeScript' }),
+        expect.objectContaining({ skillName: 'Node.js' }),
+      ]),
+      culturalFits: [expect.objectContaining({ culturalFitName: 'Collaborative' })],
+      educationalBackground: [expect.objectContaining({ institution: 'Universidade de Teste' })],
+    });
+
+    const updated = await request(app.getHttpServer()).patch(`/profiles/${created.body.id}`)
+      .auth(token, { type: 'bearer' })
+      .send({
+        name: 'Ana Souza Lima',
+        description: 'Senior backend developer',
+        skills: ['Go'],
+        culturalFits: [],
+        educationalBackground: [{
+          institution: 'Instituto Atualizado', degree: 'Engenharia de Software',
+          startDate: '2021-03-01', endDate: null,
+        }],
+      })
+      .expect(200);
+
+    expect(updated.body).toMatchObject({
+      name: 'Ana Souza Lima',
+      description: 'Senior backend developer',
+      skills: [expect.objectContaining({ skillName: 'Go' })],
+      culturalFits: [],
+      educationalBackground: [expect.objectContaining({
+        institution: 'Instituto Atualizado', degree: 'Engenharia de Software', endDate: null,
+      })],
+    });
+
+    const read = await request(app.getHttpServer()).get(`/profiles/${created.body.id}`)
+      .auth(token, { type: 'bearer' }).expect(200);
+    expect(read.body).toEqual(updated.body);
+  });
+
+  it('associates an interview with a candidate and returns it in the profile view', async () => {
+    const profile = await request(app.getHttpServer()).post('/profiles')
+      .auth(token, { type: 'bearer' }).send({ name: 'Interview Candidate' }).expect(201);
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const jobOpening = await prisma.jobOpening.create({
+      data: {
+        name: 'Integration Test Role', description: 'Role for interview integration test',
+        expectedWage: 100000, companyId: user.companyId, userId,
+        steps: { create: { name: 'Technical interview', order: 1 } },
+      },
+      include: { steps: true },
+    });
+    await prisma.jobApplication.create({
+      data: { profileId: profile.body.id, jobOpeningId: jobOpening.id },
+    });
+    const stepId = jobOpening.steps[0].id;
+    const interview = await request(app.getHttpServer()).post(`/steps/${stepId}/interviews`)
+      .auth(token, { type: 'bearer' }).send({}).expect(201);
+
+    const association = await request(app.getHttpServer()).post(`/profiles/${profile.body.id}/add-interview`)
+      .auth(token, { type: 'bearer' })
+      .send({
+        interviewId: interview.body.id,
+        transcript: 'Discussed API design and delivery experience.',
+        keyTakeaways: ['Strong API design', 'Clear communication'],
+        startDate: '2026-10-20T10:30:00.000Z',
+      })
+      .expect(201);
+
+    expect(association.body).toMatchObject({
+      interviewId: interview.body.id,
+      profileId: profile.body.id,
+      transcript: 'Discussed API design and delivery experience.',
+      keyTakeaways: JSON.stringify(['Strong API design', 'Clear communication']),
+    });
+
+    const profileView = await request(app.getHttpServer()).get(`/profiles/${profile.body.id}`)
+      .auth(token, { type: 'bearer' }).expect(200);
+    expect(profileView.body.profileInterviews).toEqual([association.body]);
+
+    await request(app.getHttpServer()).post(`/profiles/${profile.body.id}/add-interview`)
+      .auth(token, { type: 'bearer' })
+      .send({ interviewId: interview.body.id, transcript: 'Duplicate association' })
+      .expect(409);
   });
 });

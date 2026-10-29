@@ -9,6 +9,8 @@ import { AiService } from './ai.service.js';
 import { SkillsService } from './skills.service.js';
 import { CulturalFitService } from './cultural-fit.service.js';
 
+export type CvProfileCreationResult = ProfileWithRelations & { qualityIssues: string[] };
+
 @Injectable()
 export class ProfileCreationService {
   constructor(
@@ -18,10 +20,13 @@ export class ProfileCreationService {
     private readonly culturalFitService: CulturalFitService,
   ) {}
 
-  async createFromCv(file: Express.Multer.File): Promise<ProfileWithRelations> {
-    const parsed = await this.aiService.parsePdf(file);
-    const dto = await this.validateParsedProfile(parsed);
-    return this.create(dto);
+  async createFromCv(file: Express.Multer.File): Promise<CvProfileCreationResult> {
+    const parsed = typeof this.aiService.parsePdfWithQuality === 'function'
+      ? await this.aiService.parsePdfWithQuality(file)
+      : { profile: await this.aiService.parsePdf(file), qualityIssues: [] };
+    const dto = await this.validateParsedProfile(parsed.profile);
+    const profile = await this.create(dto);
+    return { ...profile, qualityIssues: parsed.qualityIssues };
   }
 
   async create(dto: CreateProfileDto): Promise<ProfileWithRelations> {
