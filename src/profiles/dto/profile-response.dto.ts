@@ -32,6 +32,12 @@ export class ProfileResponseDto {
   @ApiProperty({ type: [ProfileApplicationResponseDto] })
   applications!: ProfileApplicationResponseDto[];
 
+  @ApiPropertyOptional({
+    description: 'Warnings that ask recruiters to review AI-extracted data; returned only by CV import',
+    type: [String],
+  })
+  qualityIssues?: string[];
+
   @ApiProperty({ example: '2026-10-04T19:53:33.840Z' })
   createdAt!: Date;
 

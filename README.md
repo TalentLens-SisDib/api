@@ -222,4 +222,6 @@ curl -X POST http://localhost:3000/profiles/upload-cv \
 
 The AI result follows the `CreateProfileDto` shape: `name` is required; `description`, `skills`, and `educationalBackground` are optional. Each education entry contains `institution`, `degree`, an ISO `startDate`, and an optional ISO `endDate` (or `null` when the course is ongoing). Invalid AI output is rejected before any profile is saved. The OpenRouter schema requests all four fields, using an empty description or arrays when information is unavailable. Education is extracted only when the CV supplies the required fields and dates.
 
+CV import may also return a `qualityIssues` list when the extracted name or skills cannot be matched textually to the PDF. These warnings do not discard an otherwise valid profile; the app marks it for recruiter review. Missing summary, skills, or education are also shown as review items in the import results. The warnings contain no copied CV text and are not stored on the profile.
+
 Swagger documents the multipart field and response at `http://localhost:3000/docs`.

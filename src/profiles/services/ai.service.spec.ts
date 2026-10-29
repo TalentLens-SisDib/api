@@ -135,6 +135,28 @@ describe('CV import', () => {
     expect(await new AiService().parsePdf(pdf('Ana - React'))).toEqual({ name: 'Ana', skills: ['React'] });
   });
 
+  it('does not warn when candidate name and skills match the CV despite case and accent differences', async () => {
+    fetchMock.mockResolvedValue(Response.json({ choices: [{ message: { content: JSON.stringify({
+      name: 'ANA SILVA', description: 'Desenvolvedora', skills: ['Programação'],
+    }) } }] }));
+
+    const result = await new AiService().parsePdfWithQuality(pdf('Ana Silva - Programacao'));
+
+    expect(result.qualityIssues).toEqual([]);
+  });
+
+  it('warns when the extracted candidate name and skills lack textual support in the CV', async () => {
+    fetchMock.mockResolvedValue(Response.json({ choices: [{ message: { content: JSON.stringify({
+      name: 'Maria Costa', description: 'Desenvolvedora', skills: ['TypeScript', 'Rust', 'Node.js', 'Cobol'],
+    }) } }] }));
+
+    const result = await new AiService().parsePdfWithQuality(pdf('Ana Silva - TypeScript'));
+
+    expect(result.qualityIssues).toHaveLength(2);
+    expect(result.qualityIssues[0]).toMatch(/nome/i);
+    expect(result.qualityIssues[1]).toContain('Rust, Node.js, Cobol');
+  });
+
   it('rejects a safety classification instead of accepting it as a profile', async () => {
     vi.stubEnv('AI_PROVIDER', 'openrouter');
     vi.stubEnv('AI_MODEL', 'openrouter/free');
