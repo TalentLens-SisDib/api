@@ -49,7 +49,7 @@ jobs:
           : "${PORTAINER_ENDPOINT_ID:?Configure the PORTAINER_ENDPOINT_ID secret}"
           : "${PORTAINER_CONNECT_IP:?Configure the PORTAINER_CONNECT_IP secret}"
           curl_args=(--fail --silent --show-error --retry 3)
-          curl_args+=(--resolve "localhost:9443:${PORTAINER_CONNECT_IP}")
+          curl_args+=(--connect-to "localhost:9443:${PORTAINER_CONNECT_IP}:9443" --noproxy '*')
           if [ -n "${PORTAINER_CA_CERT:-}" ]; then
             printf '%s\n' "$PORTAINER_CA_CERT" > "$RUNNER_TEMP/portainer-ca.pem"
             curl_args+=(--cacert "$RUNNER_TEMP/portainer-ca.pem")
