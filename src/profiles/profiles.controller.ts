@@ -37,6 +37,7 @@ import type { AuthPayload } from '../auth/auth-payload.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { CreateProfileDto } from './dto/create-profile.dto.js';
+import { UploadLinkedinDto } from './dto/upload-linkedin.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { ProfileResponseDto } from './dto/profile-response.dto.js';
 import { ProfileSkillResponseDto } from './dto/profile-skill-response.dto.js';
@@ -180,6 +181,19 @@ export class ProfilesController {
     const { qualityIssues, ...profile } = await this.profileCreationService.createFromCv(file);
     res.setHeader('Location', `/profiles/${profile.id}`);
     return this.transformProfile(profile, qualityIssues);
+  }
+
+  @Post('upload-linkedin')
+  @ApiOperation({ summary: 'Import a LinkedIn person and create an applicant profile' })
+  @ApiCreatedResponse({ description: 'The created profile from LinkedIn', type: ProfileResponseDto })
+  @ApiBadRequestResponse({ description: 'Provide a valid LinkedIn username or profile URL' })
+  async uploadLinkedin(
+    @Body() dto: UploadLinkedinDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ProfileResponseDto> {
+    const profile = await this.profileCreationService.createFromLinkedin(dto);
+    res.setHeader('Location', `/profiles/${profile.id}`);
+    return this.transformProfile(profile);
   }
 
   @Post(':id/add-interview')

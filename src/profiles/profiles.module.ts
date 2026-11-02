@@ -9,6 +9,7 @@ import { ProfileEditService } from './services/profile-edit.service.js';
 import { ProfileFindService } from './services/profile-find.service.js';
 import { ProfileInterviewService } from './services/profile-interview.service.js';
 import { CulturalFitService } from './services/cultural-fit.service.js';
+import { ScavioService } from './services/scavio.service.js';
 import { ProfilesController } from './profiles.controller.js';
 
 @Module({
@@ -16,6 +17,7 @@ import { ProfilesController } from './profiles.controller.js';
   controllers: [ProfilesController],
   providers: [
     AiService,
+    ScavioService,
     JwtAuthGuard,
     ProfileFindService,
     ProfileCreationService,

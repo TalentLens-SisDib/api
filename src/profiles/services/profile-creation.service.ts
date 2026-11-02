@@ -4,10 +4,12 @@ import { validate } from 'class-validator';
 import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateProfileDto } from '../dto/create-profile.dto.js';
+import { UploadLinkedinDto } from '../dto/upload-linkedin.dto.js';
 import { ProfileWithRelations } from '../profile-types.js';
 import { AiService } from './ai.service.js';
 import { SkillsService } from './skills.service.js';
 import { CulturalFitService } from './cultural-fit.service.js';
+import { ScavioService } from './scavio.service.js';
 
 export type CvProfileCreationResult = ProfileWithRelations & { qualityIssues: string[] };
 
@@ -18,6 +20,7 @@ export class ProfileCreationService {
     private readonly aiService: AiService,
     private readonly skillsService: SkillsService,
     private readonly culturalFitService: CulturalFitService,
+    private readonly scavioService: ScavioService,
   ) {}
 
   async createFromCv(file: Express.Multer.File): Promise<CvProfileCreationResult> {
@@ -27,6 +30,12 @@ export class ProfileCreationService {
     const dto = await this.validateParsedProfile(parsed.profile);
     const profile = await this.create(dto);
     return { ...profile, qualityIssues: parsed.qualityIssues };
+  }
+
+  async createFromLinkedin(input: UploadLinkedinDto): Promise<ProfileWithRelations> {
+    const person = await this.scavioService.getLinkedinPerson(input);
+    const parsed = await this.aiService.parseLinkedinPerson(person);
+    return this.create(await this.validateParsedProfile(parsed));
   }
 
   async create(dto: CreateProfileDto): Promise<ProfileWithRelations> {
