@@ -46,7 +46,7 @@ jobs:
           : "${PORTAINER_API_KEY:?Configure the PORTAINER_API_KEY secret}"
           : "${PORTAINER_STACK_ID:?Configure the PORTAINER_STACK_ID secret}"
           : "${PORTAINER_ENDPOINT_ID:?Configure the PORTAINER_ENDPOINT_ID secret}"
-          curl_args=(--fail --silent --show-error --retry 3 --retry-all-errors)
+          curl_args=(--fail --silent --show-error --retry 3)
           if [ -n "${PORTAINER_CA_CERT:-}" ]; then
             printf '%s\n' "$PORTAINER_CA_CERT" > "$RUNNER_TEMP/portainer-ca.pem"
             curl_args+=(--cacert "$RUNNER_TEMP/portainer-ca.pem")
