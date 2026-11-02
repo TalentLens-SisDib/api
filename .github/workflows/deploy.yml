@@ -39,6 +39,7 @@ jobs:
           PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
           PORTAINER_STACK_ID: ${{ secrets.PORTAINER_STACK_ID }}
           PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID }}
+          PORTAINER_CONNECT_IP: ${{ secrets.PORTAINER_CONNECT_IP }}
           PORTAINER_CA_CERT: ${{ secrets.PORTAINER_CA_CERT }}
         run: |
           set -eu
@@ -46,7 +47,9 @@ jobs:
           : "${PORTAINER_API_KEY:?Configure the PORTAINER_API_KEY secret}"
           : "${PORTAINER_STACK_ID:?Configure the PORTAINER_STACK_ID secret}"
           : "${PORTAINER_ENDPOINT_ID:?Configure the PORTAINER_ENDPOINT_ID secret}"
+          : "${PORTAINER_CONNECT_IP:?Configure the PORTAINER_CONNECT_IP secret}"
           curl_args=(--fail --silent --show-error --retry 3)
+          curl_args+=(--resolve "localhost:9443:${PORTAINER_CONNECT_IP}")
           if [ -n "${PORTAINER_CA_CERT:-}" ]; then
             printf '%s\n' "$PORTAINER_CA_CERT" > "$RUNNER_TEMP/portainer-ca.pem"
             curl_args+=(--cacert "$RUNNER_TEMP/portainer-ca.pem")
