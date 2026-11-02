@@ -1,4 +1,4 @@
-﻿name: Build and deploy API
+name: Build and deploy API
 
 on:
   push:
@@ -41,22 +41,42 @@ jobs:
           PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID }}
           PORTAINER_CONNECT_IP: ${{ secrets.PORTAINER_CONNECT_IP }}
           PORTAINER_CA_CERT: ${{ secrets.PORTAINER_CA_CERT }}
+        shell: python3 {0}
         run: |
-          set -eu
-          : "${PORTAINER_URL:?Configure the PORTAINER_URL secret}"
-          : "${PORTAINER_API_KEY:?Configure the PORTAINER_API_KEY secret}"
-          : "${PORTAINER_STACK_ID:?Configure the PORTAINER_STACK_ID secret}"
-          : "${PORTAINER_ENDPOINT_ID:?Configure the PORTAINER_ENDPOINT_ID secret}"
-          : "${PORTAINER_CONNECT_IP:?Configure the PORTAINER_CONNECT_IP secret}"
-          curl_args=(--fail --silent --show-error --retry 3)
-          curl_args+=(--connect-to "localhost:9443:${PORTAINER_CONNECT_IP}:9443" --noproxy '*')
-          if [ -n "${PORTAINER_CA_CERT:-}" ]; then
-            printf '%s\n' "$PORTAINER_CA_CERT" > "$RUNNER_TEMP/portainer-ca.pem"
-            curl_args+=(--cacert "$RUNNER_TEMP/portainer-ca.pem")
-          fi
-          curl "${curl_args[@]}" \
-            --request PUT \
-            --header "X-API-Key: $PORTAINER_API_KEY" \
-            --header "Content-Type: application/json" \
-            --data '{"RepullImageAndRedeploy":true}' \
-            "${PORTAINER_URL%/}/api/stacks/$PORTAINER_STACK_ID/git/redeploy?endpointId=$PORTAINER_ENDPOINT_ID"
+          import http.client
+          import json
+          import os
+          import socket
+          import ssl
+          from urllib.parse import urlsplit
+
+          url = urlsplit(os.environ["PORTAINER_URL"])
+          if url.scheme != "https" or not url.hostname:
+              raise ValueError("PORTAINER_URL must be an HTTPS URL")
+          tls = ssl.create_default_context(cadata=os.environ.get("PORTAINER_CA_CERT") or None)
+
+          class PortainerConnection(http.client.HTTPSConnection):
+              def connect(self):
+                  raw = socket.create_connection((os.environ["PORTAINER_CONNECT_IP"], self.port), timeout=self.timeout)
+                  self.sock = tls.wrap_socket(raw, server_hostname=self.host)
+
+          def request(method, path, payload=None):
+              connection = PortainerConnection(url.hostname, url.port or 443, context=tls, timeout=180)
+              try:
+                  connection.request(method, path, body=json.dumps(payload) if payload is not None else None,
+                                     headers={"X-API-Key": os.environ["PORTAINER_API_KEY"], "Content-Type": "application/json"})
+                  response = connection.getresponse()
+                  data = response.read()
+                  if not 200 <= response.status < 300:
+                      raise RuntimeError(f"Portainer returned HTTP {response.status} for {method} {path}")
+                  return json.loads(data) if data else {}
+              finally:
+                  connection.close()
+
+          stack_id = int(os.environ["PORTAINER_STACK_ID"])
+          endpoint_id = int(os.environ["PORTAINER_ENDPOINT_ID"])
+          stack = request("GET", f"/api/stacks/{stack_id}")
+          request("PUT", f"/api/stacks/{stack_id}/git/redeploy?endpointId={endpoint_id}",
+                  {"RepullImageAndRedeploy": True, "Env": stack.get("Env", []),
+                   "RepositoryReferenceName": "refs/heads/main"})
+          print("Portainer stack redeployed successfully with verified HTTPS")
