@@ -1,4 +1,4 @@
-name: Build and deploy API
+﻿name: Build and deploy API
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,28 +27,31 @@ jobs:
           tags: |
             ghcr.io/talentlens-sisdib/api:main
             ghcr.io/talentlens-sisdib/api:${{ github.sha }}
+
+  redeploy:
+    needs: build
+    runs-on: [self-hosted, talentlens]
+    permissions: {}
+    steps:
       - name: Pull latest stack and images
         env:
           PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
           PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
           PORTAINER_STACK_ID: ${{ secrets.PORTAINER_STACK_ID }}
           PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID }}
-          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
-          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          PORTAINER_CA_CERT: ${{ secrets.PORTAINER_CA_CERT }}
         run: |
           set -eu
-          if [ -z "${PORTAINER_URL:-}" ] || [ -z "${PORTAINER_API_KEY:-}" ] || [ -z "${PORTAINER_STACK_ID:-}" ] || [ -z "${PORTAINER_ENDPOINT_ID:-}" ]; then
-            echo "::notice::Portainer secrets ainda não configurados; imagem publicada, redeploy ignorado."
-            exit 0
+          : "${PORTAINER_URL:?Configure the PORTAINER_URL secret}"
+          : "${PORTAINER_API_KEY:?Configure the PORTAINER_API_KEY secret}"
+          : "${PORTAINER_STACK_ID:?Configure the PORTAINER_STACK_ID secret}"
+          : "${PORTAINER_ENDPOINT_ID:?Configure the PORTAINER_ENDPOINT_ID secret}"
+          curl_args=(--fail --silent --show-error --retry 3 --retry-all-errors)
+          if [ -n "${PORTAINER_CA_CERT:-}" ]; then
+            printf '%s\n' "$PORTAINER_CA_CERT" > "$RUNNER_TEMP/portainer-ca.pem"
+            curl_args+=(--cacert "$RUNNER_TEMP/portainer-ca.pem")
           fi
-          curl_args=()
-          if [ -n "${CF_ACCESS_CLIENT_ID:-}" ] || [ -n "${CF_ACCESS_CLIENT_SECRET:-}" ]; then
-            test -n "$CF_ACCESS_CLIENT_ID"
-            test -n "$CF_ACCESS_CLIENT_SECRET"
-            curl_args+=(--header "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID")
-            curl_args+=(--header "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET")
-          fi
-          curl "${curl_args[@]}" --fail --silent --show-error --retry 3 --retry-all-errors \
+          curl "${curl_args[@]}" \
             --request PUT \
             --header "X-API-Key: $PORTAINER_API_KEY" \
             --header "Content-Type: application/json" \
