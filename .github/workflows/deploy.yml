@@ -1,0 +1,56 @@
+name: Build and deploy API
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/talentlens-sisdib/api:main
+            ghcr.io/talentlens-sisdib/api:${{ github.sha }}
+      - name: Pull latest stack and images
+        env:
+          PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
+          PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
+          PORTAINER_STACK_ID: ${{ secrets.PORTAINER_STACK_ID }}
+          PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: |
+          set -eu
+          if [ -z "${PORTAINER_URL:-}" ] || [ -z "${PORTAINER_API_KEY:-}" ] || [ -z "${PORTAINER_STACK_ID:-}" ] || [ -z "${PORTAINER_ENDPOINT_ID:-}" ]; then
+            echo "::notice::Portainer secrets ainda não configurados; imagem publicada, redeploy ignorado."
+            exit 0
+          fi
+          curl_args=()
+          if [ -n "${CF_ACCESS_CLIENT_ID:-}" ] || [ -n "${CF_ACCESS_CLIENT_SECRET:-}" ]; then
+            test -n "$CF_ACCESS_CLIENT_ID"
+            test -n "$CF_ACCESS_CLIENT_SECRET"
+            curl_args+=(--header "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID")
+            curl_args+=(--header "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET")
+          fi
+          curl "${curl_args[@]}" --fail --silent --show-error --retry 3 --retry-all-errors \
+            --request PUT \
+            --header "X-API-Key: $PORTAINER_API_KEY" \
+            --header "Content-Type: application/json" \
+            --data '{"RepullImageAndRedeploy":true}' \
+            "${PORTAINER_URL%/}/api/stacks/$PORTAINER_STACK_ID/git/redeploy?endpointId=$PORTAINER_ENDPOINT_ID"
