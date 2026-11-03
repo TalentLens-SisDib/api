@@ -9,11 +9,11 @@ export const PROFILE_RESPONSE_FORMAT = {
       additionalProperties: false,
       required: ['name', 'description', 'skills', 'educationalBackground'],
       properties: {
-        name: { type: 'string', description: 'Candidate full name from the CV; empty if absent.' },
-        description: { type: 'string', description: 'Factual summary in the language of the CV, at most 2000 characters; empty if unavailable.' },
+        name: { type: 'string', description: 'Candidate full name from the source; empty if absent.' },
+        description: { type: 'string', description: 'Factual summary in the language of the source, at most 2000 characters; empty if unavailable.' },
         skills: {
           type: 'array',
-          description: 'At most 100 skills explicitly supported by the CV.',
+          description: 'At most 100 skills explicitly supported by the source.',
           items: { type: 'string' },
         },
         educationalBackground: {
@@ -26,7 +26,7 @@ export const PROFILE_RESPONSE_FORMAT = {
             properties: {
               institution: { type: 'string' },
               degree: { type: 'string' },
-              startDate: { type: 'string', description: 'Start date from the CV in ISO YYYY-MM-DD format.' },
+              startDate: { type: 'string', description: 'Start date from the source in ISO YYYY-MM-DD format.' },
               endDate: { type: ['string', 'null'], description: 'End date in ISO YYYY-MM-DD format, or null when ongoing or unavailable.' },
             },
           },

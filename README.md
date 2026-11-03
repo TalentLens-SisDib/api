@@ -69,6 +69,7 @@ Configure these variables **only in `api/.env`**:
 | `AI_API_KEY` | Provider key; may be blank for local OpenAI-compatible servers |
 | `AI_API_URL` | Versioned base URL, without the operation path |
 | `AI_TIMEOUT_MS` | Request timeout, defaults to 60000 (maximum 300000) |
+| `SCAVIO_API_KEY` | Scavio bearer key for LinkedIn imports |
 
 Provider base URLs:
 
@@ -225,3 +226,14 @@ The AI result follows the `CreateProfileDto` shape: `name` is required; `descrip
 CV import may also return a `qualityIssues` list when the extracted name or skills cannot be matched textually to the PDF. These warnings do not discard an otherwise valid profile; the app marks it for recruiter review. Missing summary, skills, or education are also shown as review items in the import results. The warnings contain no copied CV text and are not stored on the profile.
 
 Swagger documents the multipart field and response at `http://localhost:3000/docs`.
+
+## Create a candidate profile from LinkedIn
+
+The authenticated `POST /profiles/upload-linkedin` endpoint accepts JSON with exactly one of `username` or `url`. It requests [Scavio's LinkedIn person endpoint](https://scavio.dev/docs/linkedin-person), sends the returned `data` to the configured AI provider, validates the resulting `CreateProfileDto`, and saves the profile using the same transaction as CV import. Configure `SCAVIO_API_KEY` along with the AI provider variables above.
+
+```bash
+curl -X POST http://localhost:3000/profiles/upload-linkedin \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.linkedin.com/in/williamhgates/"}'
+```
