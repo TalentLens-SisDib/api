@@ -537,6 +537,83 @@
         ]
       }
     },
+    "/cultural-fits": {
+      "get": {
+        "operationId": "CulturalFitsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of all cultural fits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CulturalFitResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all cultural fits",
+        "tags": [
+          "cultural-fits"
+        ]
+      },
+      "post": {
+        "operationId": "CulturalFitsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCulturalFitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created cultural fit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CulturalFitResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The payload failed validation"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "409": {
+            "description": "A cultural fit with this name already exists"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a cultural fit",
+        "tags": [
+          "cultural-fits"
+        ]
+      }
+    },
     "/job-openings": {
       "get": {
         "operationId": "JobOpeningsController_findAll",
@@ -1198,6 +1275,49 @@
           }
         ],
         "summary": "Upload a PDF CV and create an applicant profile",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/profiles/upload-linkedin": {
+      "post": {
+        "operationId": "ProfilesController_uploadLinkedin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadLinkedinDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created profile from LinkedIn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Provide a valid LinkedIn username or profile URL"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Import a LinkedIn person and create an applicant profile",
         "tags": [
           "profiles"
         ]
@@ -2362,6 +2482,60 @@
           }
         }
       },
+      "CulturalFitResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "name": {
+            "type": "string",
+            "example": "Trabalho em equipe"
+          },
+          "description": {
+            "type": "object",
+            "example": "Colabora bem com colegas e compartilha conhecimento"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T19:53:33.840Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-04T20:02:21.371Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateCulturalFitDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the cultural fit",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "Trabalho em equipe"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the cultural fit",
+            "maxLength": 500,
+            "example": "Colabora bem com colegas e compartilha conhecimento"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "Decimal2": {
         "type": "object",
         "properties": {}
@@ -2932,6 +3106,13 @@
               "$ref": "#/components/schemas/ProfileApplicationResponseDto"
             }
           },
+          "qualityIssues": {
+            "description": "Warnings that ask recruiters to review AI-extracted data; returned only by CV import",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string",
@@ -3033,6 +3214,21 @@
         "required": [
           "name"
         ]
+      },
+      "UploadLinkedinDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "williamhgates",
+            "description": "Public LinkedIn profile handle; provide this or url"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://www.linkedin.com/in/williamhgates/",
+            "description": "Public LinkedIn profile URL; provide this or username"
+          }
+        }
       },
       "AddProfileInterviewDto": {
         "type": "object",
