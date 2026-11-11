@@ -1,5 +1,6 @@
 import {
   ApplicantProfile,
+  CompetencyEvidence,
   CulturalFit,
   Education,
   JobApplication,
@@ -13,5 +14,6 @@ export type ProfileWithRelations = ApplicantProfile & {
   culturalFits: Array<{ culturalFit: Pick<CulturalFit, 'id' | 'name' | 'description'> }>;
   educationalBackground: Education[];
   profileInterviews: ProfileInterview[];
+  competencyEvidence?: CompetencyEvidence[];
   applications: Array<JobApplication & { jobOpening: JobOpening }>;
 };

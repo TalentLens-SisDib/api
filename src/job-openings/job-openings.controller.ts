@@ -38,7 +38,9 @@ import { JobOpeningResponseDto } from './dto/job-opening-response.dto.js';
 import { JobOpeningSkillResponseDto } from './dto/job-opening-skill-response.dto.js';
 import { JobOpeningCulturalFitResponseDto } from './dto/job-opening-cultural-fit-response.dto.js';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto.js';
+import { AdvanceJobApplicationDto } from './dto/advance-job-application.dto.js';
 import { JobApplicationResponseDto } from './dto/job-application-response.dto.js';
+import { UpdateJobApplicationStatusDto } from './dto/update-job-application-status.dto.js';
 import { JobApplicationService } from './services/job-application.service.js';
 import { JobOpeningCreationService } from './services/job-opening-creation.service.js';
 import { JobOpeningDeleteService } from './services/job-opening-delete.service.js';
@@ -145,6 +147,40 @@ export class JobOpeningsController {
     @Body() dto: CreateJobApplicationDto,
   ): Promise<JobApplicationResponseDto> {
     return this.jobApplicationService.create(requester, id, dto);
+  }
+
+  @Post(':id/applications/:profileId/advance')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Advance an application to the next job stage' })
+  @ApiOkResponse({ description: 'The updated application', type: JobApplicationResponseDto })
+  @ApiBadRequestResponse({ description: 'An id or payload is invalid' })
+  @ApiConflictResponse({ description: 'The application cannot advance from its current state' })
+  @ApiNotFoundResponse({ description: 'No job opening or application exists with those ids' })
+  @ApiForbiddenResponse({ description: 'The caller may not manage that job opening' })
+  async advanceApplication(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+    @Body() dto: AdvanceJobApplicationDto,
+  ): Promise<JobApplicationResponseDto> {
+    return this.jobApplicationService.advance(requester, id, profileId, dto);
+  }
+
+  @Patch(':id/applications/:profileId/status')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update an application status' })
+  @ApiOkResponse({ description: 'The updated application', type: JobApplicationResponseDto })
+  @ApiBadRequestResponse({ description: 'An id or payload is invalid' })
+  @ApiConflictResponse({ description: 'The status change is not allowed' })
+  @ApiNotFoundResponse({ description: 'No job opening or application exists with those ids' })
+  @ApiForbiddenResponse({ description: 'The caller may not manage that job opening' })
+  async updateApplicationStatus(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+    @Body() dto: UpdateJobApplicationStatusDto,
+  ): Promise<JobApplicationResponseDto> {
+    return this.jobApplicationService.updateStatus(requester, id, profileId, dto);
   }
 
   @Delete(':id/applications/:profileId')
