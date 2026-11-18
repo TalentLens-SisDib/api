@@ -6,6 +6,14 @@ import { ProfileApplicationResponseDto } from './profile-application-response.dt
 import { ProfileCulturalFitResponseDto } from './profile-cultural-fit-response.dto.js';
 import { CompetencyEvidenceResponseDto } from './competency-evidence-response.dto.js';
 
+export class ProfileCreatorResponseDto {
+  @ApiProperty({ example: 3 })
+  id!: number;
+
+  @ApiProperty({ example: 'Maria Recrutadora' })
+  name!: string;
+}
+
 export class ProfileResponseDto {
   @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
   id!: string;
@@ -41,6 +49,15 @@ export class ProfileResponseDto {
     type: [String],
   })
   qualityIssues?: string[];
+
+  @ApiProperty({ description: 'Company that owns the candidate record', example: 1 })
+  companyId!: number;
+
+  @ApiPropertyOptional({ description: 'Recruiter who registered the candidate', example: 3, nullable: true })
+  createdById?: number | null;
+
+  @ApiPropertyOptional({ type: () => ProfileCreatorResponseDto, nullable: true })
+  createdBy?: ProfileCreatorResponseDto | null;
 
   @ApiProperty({ example: '2026-10-04T19:53:33.840Z' })
   createdAt!: Date;

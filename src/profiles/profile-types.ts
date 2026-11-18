@@ -17,4 +17,5 @@ export type ProfileWithRelations = ApplicantProfile & {
   profileInterviews: ProfileInterview[];
   competencyEvidence?: CompetencyEvidence[];
   applications: Array<JobApplication & { jobOpening: JobOpening; closedBy?: Pick<User, 'id' | 'name'> | null }>;
+  createdBy?: Pick<User, 'id' | 'name'> | null;
 };

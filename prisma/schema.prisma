@@ -45,6 +45,7 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   jobOpenings JobOpening[]
+  profiles    ApplicantProfile[]
 
   users User[]
 }
@@ -63,6 +64,7 @@ model User {
   interviews Interview[]
   talentPoolEntries TalentPoolEntry[]
   closedApplications JobApplication[] @relation("ApplicationClosedBy")
+  createdProfiles ApplicantProfile[] @relation("ProfileCreatedBy")
 
   @@index([companyId])
 }
@@ -159,7 +161,12 @@ model ApplicantProfile {
   description           String?
   createdAt             DateTime             @default(now())
   updatedAt             DateTime             @default(now()) @updatedAt
-  
+
+  companyId             Int                  // Empresa dona do cadastro do candidato
+  company               Company              @relation(fields: [companyId], references: [id])
+  createdById           Int?                 // Recrutador que cadastrou o candidato
+  createdBy             User?                @relation("ProfileCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
   skills                ProfileSkill[]       // Skills ligadas à tabela de Requirements
   culturalFits          ProfileCulturalFit[]
   applications          JobApplication[]     // Vagas de emprego às quais se candidatou
@@ -168,6 +175,8 @@ model ApplicantProfile {
   profileInterviews     ProfileInterview[]
   competencyEvidence    CompetencyEvidence[]
   talentPoolEntry       TalentPoolEntry?
+
+  @@index([companyId])
 }
 
 model TalentPoolEntry {

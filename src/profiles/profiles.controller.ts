@@ -127,8 +127,8 @@ export class ProfilesController {
     description: 'List of all applicant profiles',
     type: [ProfileResponseDto],
   })
-  async findAll(): Promise<ProfileResponseDto[]> {
-    const profiles = await this.profileFindService.findAll();
+  async findAll(@CurrentUser() requester: AuthPayload): Promise<ProfileResponseDto[]> {
+    const profiles = await this.profileFindService.findAll(requester.companyId);
     return profiles.map((p) => this.transformProfile(p));
   }
 
@@ -139,8 +139,8 @@ export class ProfilesController {
   @ApiOkResponse({ description: 'The requested profile', type: ProfileResponseDto })
   @ApiBadRequestResponse({ description: 'The id is not a valid UUID' })
   @ApiNotFoundResponse({ description: 'No profile exists with that id' })
-  async findOne(@Param('id') id: string): Promise<ProfileResponseDto> {
-    const profile = await this.profileFindService.findById(id);
+  async findOne(@CurrentUser() requester: AuthPayload, @Param('id') id: string): Promise<ProfileResponseDto> {
+    const profile = await this.profileFindService.findById(id, requester.companyId);
     return this.transformProfile(profile);
   }
 
@@ -156,7 +156,7 @@ export class ProfilesController {
     @Body() dto: CreateProfileDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileResponseDto> {
-    const profile = await this.profileCreationService.create(dto);
+    const profile = await this.profileCreationService.create(requester, dto);
     res.setHeader('Location', `/profiles/${profile.id}`);
     return this.transformProfile(profile);
   }
@@ -183,7 +183,7 @@ export class ProfilesController {
     @UploadedFile(CvFilePipe) file: Express.Multer.File,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileResponseDto> {
-    const { qualityIssues, ...profile } = await this.profileCreationService.createFromCv(file);
+    const { qualityIssues, ...profile } = await this.profileCreationService.createFromCv(requester, file);
     res.setHeader('Location', `/profiles/${profile.id}`);
     return this.transformProfile(profile, qualityIssues);
   }
@@ -193,10 +193,11 @@ export class ProfilesController {
   @ApiCreatedResponse({ description: 'The created profile from LinkedIn', type: ProfileResponseDto })
   @ApiBadRequestResponse({ description: 'Provide a valid LinkedIn username or profile URL' })
   async uploadLinkedin(
+    @CurrentUser() requester: AuthPayload,
     @Body() dto: UploadLinkedinDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileResponseDto> {
-    const profile = await this.profileCreationService.createFromLinkedin(dto);
+    const profile = await this.profileCreationService.createFromLinkedin(requester, dto);
     res.setHeader('Location', `/profiles/${profile.id}`);
     return this.transformProfile(profile);
   }
@@ -228,8 +229,11 @@ export class ProfilesController {
   @ApiOkResponse({ description: 'The interview records of the profile', type: [ProfileInterviewResponseDto] })
   @ApiBadRequestResponse({ description: 'The id is not a valid UUID' })
   @ApiNotFoundResponse({ description: 'No profile exists with that id' })
-  async findInterviews(@Param('id', new ParseUUIDPipe()) id: string): Promise<ProfileInterviewResponseDto[]> {
-    return this.profileInterviewService.findByProfile(id);
+  async findInterviews(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<ProfileInterviewResponseDto[]> {
+    return this.profileInterviewService.findByProfile(requester, id);
   }
 
   @Get(':id/interviews/:profileInterviewId')
@@ -241,10 +245,11 @@ export class ProfilesController {
   @ApiBadRequestResponse({ description: 'The id or profileInterviewId is not a valid UUID' })
   @ApiNotFoundResponse({ description: 'No interview record with that id exists for this profile' })
   async findInterview(
+    @CurrentUser() requester: AuthPayload,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('profileInterviewId', new ParseUUIDPipe()) profileInterviewId: string,
   ): Promise<ProfileInterviewResponseDto> {
-    return this.profileInterviewService.findOne(id, profileInterviewId);
+    return this.profileInterviewService.findOne(requester, id, profileInterviewId);
   }
 
   @Patch(':id/interviews/:profileInterviewId')
@@ -294,7 +299,7 @@ export class ProfilesController {
     @Param('id') id: string,
     @Body() dto: UpdateProfileDto,
   ): Promise<ProfileResponseDto> {
-    const profile = await this.profileEditService.update(id, dto);
+    const profile = await this.profileEditService.update(requester.companyId, id, dto);
     return this.transformProfile(profile);
   }
 
@@ -309,6 +314,6 @@ export class ProfilesController {
     @CurrentUser() requester: AuthPayload,
     @Param('id') id: string,
   ): Promise<void> {
-    return this.profileDeleteService.remove(id);
+    return this.profileDeleteService.remove(requester.companyId, id);
   }
 }

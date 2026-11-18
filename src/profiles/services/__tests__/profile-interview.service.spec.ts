@@ -11,7 +11,7 @@ import { PrismaService } from '../../../prisma/prisma.service.js';
 import { ProfileInterviewService } from '../profile-interview.service.js';
 
 const mockPrisma = {
-  applicantProfile: { findUnique: vi.fn() },
+  applicantProfile: { findFirst: vi.fn() },
   interview: { findUnique: vi.fn() },
   jobApplication: { findUnique: vi.fn() },
   profileInterview: {
@@ -23,8 +23,9 @@ const mockPrisma = {
   },
 };
 
-const owner = { sub: 1 } as AuthPayload;
-const otherUser = { sub: 2 } as AuthPayload;
+const owner = { sub: 1, companyId: 1 } as AuthPayload;
+const otherUser = { sub: 2, companyId: 1 } as AuthPayload;
+const otherCompanyUser = { sub: 3, companyId: 2 } as AuthPayload;
 
 const record = {
   id: 'pi1',
@@ -42,6 +43,7 @@ describe('ProfileInterviewService', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    mockPrisma.applicantProfile.findFirst.mockResolvedValue({ id: 'p1' });
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProfileInterviewService,
@@ -56,7 +58,7 @@ describe('ProfileInterviewService', () => {
     const dto = { interviewId: 'i1', transcript: 'Transcript', keyTakeaways: ['a', 'b'] };
 
     beforeEach(() => {
-      mockPrisma.applicantProfile.findUnique.mockResolvedValue({ id: 'p1' });
+      mockPrisma.applicantProfile.findFirst.mockResolvedValue({ id: 'p1' });
       mockPrisma.interview.findUnique.mockResolvedValue({ id: 'i1', userId: 1, step: { jobOpeningId: 'j1' } });
       mockPrisma.jobApplication.findUnique.mockResolvedValue({ profileId: 'p1' });
     });
@@ -81,7 +83,7 @@ describe('ProfileInterviewService', () => {
 
     it('should throw NotFoundException when the profile does not exist', async () => {
       // Arrange
-      mockPrisma.applicantProfile.findUnique.mockResolvedValue(null);
+      mockPrisma.applicantProfile.findFirst.mockResolvedValue(null);
 
       // Act
       const promise = service.addInterviewToProfile(owner, 'p1', dto);
@@ -213,6 +215,27 @@ describe('ProfileInterviewService', () => {
 
       // Assert
       await expect(promise).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('company isolation', () => {
+    it('should hide the interviews of a profile owned by another company', async () => {
+      mockPrisma.applicantProfile.findFirst.mockResolvedValue(null);
+
+      await expect(service.findByProfile(otherCompanyUser, 'p1')).rejects.toBeInstanceOf(NotFoundException);
+      expect(mockPrisma.applicantProfile.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'p1', companyId: 2 } }),
+      );
+      expect(mockPrisma.profileInterview.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should not update records of a profile owned by another company', async () => {
+      mockPrisma.applicantProfile.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.update(otherCompanyUser, 'p1', 'pi1', { transcript: 'New' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(mockPrisma.profileInterview.update).not.toHaveBeenCalled();
     });
   });
 });

@@ -10,8 +10,8 @@ export class ProfileDeleteService {
     private readonly profileFindService: ProfileFindService,
   ) {}
 
-  async remove(id: string): Promise<void> {
-    await this.profileFindService.findById(id);
+  async remove(companyId: number, id: string): Promise<void> {
+    await this.profileFindService.findById(id, companyId);
 
     try {
       await this.prisma.applicantProfile.delete({ where: { id } });
