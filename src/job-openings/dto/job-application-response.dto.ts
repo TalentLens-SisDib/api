@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { ApplicationStatus } from '../../generated/prisma/client.js';
+import { ApplicationStatus } from '../../generated/prisma/client.js';
 
 class JobApplicationStepResponseDto {
   @ApiProperty({ format: 'uuid' })
