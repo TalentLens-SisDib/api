@@ -56,6 +56,7 @@ export class ProfileFindService {
         profileInterviews: {
           orderBy: { startDate: 'desc' },
         },
+        competencyEvidence: { orderBy: { createdAt: 'desc' } },
       },
     });
 

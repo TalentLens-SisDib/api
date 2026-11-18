@@ -104,6 +104,7 @@ export class ProfileEditService {
         profileInterviews: {
           orderBy: { startDate: 'desc' },
         },
+        competencyEvidence: { orderBy: { createdAt: 'desc' } },
       },
     });
   }

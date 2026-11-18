@@ -4,6 +4,7 @@ import { ProfileInterviewResponseDto } from './profile-interview-response.dto.js
 import { ProfileSkillResponseDto } from './profile-skill-response.dto.js';
 import { ProfileApplicationResponseDto } from './profile-application-response.dto.js';
 import { ProfileCulturalFitResponseDto } from './profile-cultural-fit-response.dto.js';
+import { CompetencyEvidenceResponseDto } from './competency-evidence-response.dto.js';
 
 export class ProfileResponseDto {
   @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
@@ -28,6 +29,9 @@ export class ProfileResponseDto {
 
   @ApiPropertyOptional({ type: [ProfileInterviewResponseDto] })
   profileInterviews?: ProfileInterviewResponseDto[];
+
+  @ApiPropertyOptional({ type: [CompetencyEvidenceResponseDto] })
+  competencyEvidence?: CompetencyEvidenceResponseDto[];
 
   @ApiProperty({ type: [ProfileApplicationResponseDto] })
   applications!: ProfileApplicationResponseDto[];

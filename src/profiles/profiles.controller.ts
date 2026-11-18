@@ -97,6 +97,17 @@ export class ProfilesController {
         createdAt: pi.createdAt,
         updatedAt: pi.updatedAt,
       })) ?? [],
+      ...(profile.competencyEvidence !== undefined && {
+        competencyEvidence: profile.competencyEvidence.map((evidence) => ({
+          id: evidence.id,
+          competencyId: evidence.competencyId,
+          competencyName: evidence.competencyName,
+          sourceType: evidence.sourceType,
+          sourceLabel: evidence.sourceLabel,
+          excerpt: evidence.excerpt,
+          createdAt: evidence.createdAt,
+        })),
+      }),
     };
   }
 

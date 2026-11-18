@@ -6,7 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateProfileDto } from '../dto/create-profile.dto.js';
 import { UploadLinkedinDto } from '../dto/upload-linkedin.dto.js';
 import { ProfileWithRelations } from '../profile-types.js';
-import { AiService } from './ai.service.js';
+import { AiService, type ParsedCvEvidence } from './ai.service.js';
 import { SkillsService } from './skills.service.js';
 import { CulturalFitService } from './cultural-fit.service.js';
 import { ScavioService } from './scavio.service.js';
@@ -26,9 +26,9 @@ export class ProfileCreationService {
   async createFromCv(file: Express.Multer.File): Promise<CvProfileCreationResult> {
     const parsed = typeof this.aiService.parsePdfWithQuality === 'function'
       ? await this.aiService.parsePdfWithQuality(file)
-      : { profile: await this.aiService.parsePdf(file), qualityIssues: [] };
+      : { profile: await this.aiService.parsePdf(file), qualityIssues: [], competencyEvidence: [] };
     const dto = await this.validateParsedProfile(parsed.profile);
-    const profile = await this.create(dto);
+    const profile = await this.create(dto, parsed.competencyEvidence ?? []);
     return { ...profile, qualityIssues: parsed.qualityIssues };
   }
 
@@ -38,7 +38,10 @@ export class ProfileCreationService {
     return this.create(await this.validateParsedProfile(parsed));
   }
 
-  async create(dto: CreateProfileDto): Promise<ProfileWithRelations> {
+  async create(
+    dto: CreateProfileDto,
+    competencyEvidence: ParsedCvEvidence[] = [],
+  ): Promise<ProfileWithRelations> {
     const { skills, culturalFits, educationalBackground, ...profileData } = dto;
 
     return await this.prisma.$transaction(async (tx) => {
@@ -65,6 +68,17 @@ export class ProfileCreationService {
             requirementId: skill.id,
           })),
         });
+        if (competencyEvidence.length > 0) {
+          const skillIds = new Map(skillRecords.map((skill) => [skill.name, skill.id]));
+          await tx.competencyEvidence.createMany({
+            data: competencyEvidence.flatMap(({ competencyName, ...evidence }) => {
+              const competencyId = skillIds.get(competencyName);
+              return competencyId
+                ? [{ ...evidence, competencyId, competencyName, profileId: profile.id }]
+                : [];
+            }),
+          });
+        }
       }
 
       if (culturalFits && culturalFits.length > 0) {
@@ -104,6 +118,7 @@ export class ProfileCreationService {
         profileInterviews: {
           orderBy: { startDate: 'desc' },
         },
+        competencyEvidence: { orderBy: { createdAt: 'desc' } },
       },
     });
   }

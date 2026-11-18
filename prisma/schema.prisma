@@ -17,6 +17,19 @@ enum Role {
   Recruiter
 }
 
+enum ApplicationStatus {
+  InProgress
+  Hired
+  Rejected
+}
+
+enum CompetencyEvidenceSource {
+  curriculo
+  entrevista
+  avaliacao
+  outro
+}
+
 model Company {
   id        Int      @id @default(autoincrement())
   name      String   @unique
@@ -75,6 +88,7 @@ model Step {
   jobOpening    JobOpening  @relation(fields: [jobOpeningId], references: [id], onDelete: Cascade)
   
   interviews    Interview[]
+  applications  JobApplication[]
   
   @@unique([jobOpeningId, order])
 }
@@ -142,6 +156,7 @@ model ApplicantProfile {
   
   educationalBackground Education[]
   profileInterviews     ProfileInterview[]
+  competencyEvidence    CompetencyEvidence[]
   talentPoolEntry       TalentPoolEntry?
 }
 
@@ -188,6 +203,20 @@ model ProfileCulturalFit {
   @@id([profileId, culturalFitId])
 }
 
+model CompetencyEvidence {
+  id             String                   @id @default(uuid())
+  competencyId   String
+  competencyName String
+  sourceType     CompetencyEvidenceSource
+  sourceLabel    String
+  excerpt        String
+  createdAt      DateTime                 @default(now())
+  profileId      String
+  profile        ApplicantProfile         @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, createdAt])
+}
+
 model JobApplication {
   profileId    String
   profile      ApplicantProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -196,6 +225,11 @@ model JobApplication {
   jobOpening   JobOpening @relation(fields: [jobOpeningId], references: [id], onDelete: Cascade)
   
   appliedAt    DateTime   @default(now()) // Metadado útil: data da candidatura
+
+  currentStepId  String?
+  currentStep    Step?             @relation(fields: [currentStepId], references: [id], onDelete: SetNull)
+  status         ApplicationStatus @default(InProgress)
+  stageUpdatedAt DateTime          @default(now())
 
   @@id([profileId, jobOpeningId])
 }
