@@ -39,6 +39,7 @@ model User {
   company   Company  @relation(fields: [companyId], references: [id])
   jobOpenings JobOpening[]
   interviews Interview[]
+  talentPoolEntries TalentPoolEntry[]
 
   @@index([companyId])
 }
@@ -141,6 +142,19 @@ model ApplicantProfile {
   
   educationalBackground Education[]
   profileInterviews     ProfileInterview[]
+  talentPoolEntry       TalentPoolEntry?
+}
+
+model TalentPoolEntry {
+  profileId String           @id
+  profile   ApplicantProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  note      String?
+  addedAt   DateTime         @default(now())
+  updatedAt DateTime         @default(now()) @updatedAt
+  addedById Int?
+  addedBy   User?            @relation(fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@index([addedAt])
 }
 
 model Education {
