@@ -4,14 +4,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import type { User } from '../generated/prisma/client.js';
 import { AuthPayload } from '../auth/auth-payload.js';
 import {
   JWT_REFRESH_TTL_SECONDS,
   JWT_TTL_SECONDS,
 } from '../auth/jwt.config.js';
 import { verifyPassword } from '../common/password.js';
-import { UserFindService } from '../users/services/user-find.service.js';
+import { type SessionUser, UserFindService } from '../users/services/user-find.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { LoginResponseDto } from './dto/login-response.dto.js';
 import { RefreshResponseDto } from './dto/refresh-response.dto.js';
@@ -43,6 +42,7 @@ export class LoginService {
       email: credentials.email,
       role: credentials.role,
       companyId: credentials.companyId,
+      companyName: credentials.company.name,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -81,9 +81,9 @@ export class LoginService {
       throw new UnauthorizedException(INVALID_REFRESH_TOKEN);
     }
 
-    let user: User;
+    let user: SessionUser;
     try {
-      user = await this.userFindService.findById(payload['sub'] as number);
+      user = await this.userFindService.findSessionUserById(payload['sub'] as number);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new UnauthorizedException(INVALID_REFRESH_TOKEN);
@@ -97,6 +97,7 @@ export class LoginService {
       email: user.email,
       role: user.role,
       companyId: user.companyId,
+      companyName: user.company.name,
     });
 
     return { accessToken, tokenType: 'Bearer', expiresIn: JWT_TTL_SECONDS };

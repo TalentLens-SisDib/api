@@ -7,6 +7,8 @@ export interface AuthPayload {
   email: string;
   role: Role;
   companyId: number;
+  /** Nome da empresa, para exibição no app. Ausente em tokens emitidos antes deste campo. */
+  companyName?: string;
 }
 
 export interface AuthenticatedRequest extends Request {

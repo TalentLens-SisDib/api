@@ -5,7 +5,9 @@ import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateProfileDto } from '../dto/create-profile.dto.js';
 import { UploadLinkedinDto } from '../dto/upload-linkedin.dto.js';
+import type { AuthPayload } from '../../auth/auth-payload.js';
 import { ProfileWithRelations } from '../profile-types.js';
+import { profileDetailInclude } from './profile-find.service.js';
 import { AiService, type ParsedCvEvidence } from './ai.service.js';
 import { SkillsService } from './skills.service.js';
 import { CulturalFitService } from './cultural-fit.service.js';
@@ -23,22 +25,24 @@ export class ProfileCreationService {
     private readonly scavioService: ScavioService,
   ) {}
 
-  async createFromCv(file: Express.Multer.File): Promise<CvProfileCreationResult> {
+  async createFromCv(requester: AuthPayload, file: Express.Multer.File): Promise<CvProfileCreationResult> {
     const parsed = typeof this.aiService.parsePdfWithQuality === 'function'
       ? await this.aiService.parsePdfWithQuality(file)
       : { profile: await this.aiService.parsePdf(file), qualityIssues: [], competencyEvidence: [] };
     const dto = await this.validateParsedProfile(parsed.profile);
-    const profile = await this.create(dto, parsed.competencyEvidence ?? []);
+    const profile = await this.create(requester, dto, parsed.competencyEvidence ?? []);
     return { ...profile, qualityIssues: parsed.qualityIssues };
   }
 
-  async createFromLinkedin(input: UploadLinkedinDto): Promise<ProfileWithRelations> {
+  async createFromLinkedin(requester: AuthPayload, input: UploadLinkedinDto): Promise<ProfileWithRelations> {
     const person = await this.scavioService.getLinkedinPerson(input);
     const parsed = await this.aiService.parseLinkedinPerson(person);
-    return this.create(await this.validateParsedProfile(parsed));
+    return this.create(requester, await this.validateParsedProfile(parsed));
   }
 
+  /** O candidato fica na empresa de quem cadastrou, e esse recrutador fica registrado como autor. */
   async create(
+    requester: AuthPayload,
     dto: CreateProfileDto,
     competencyEvidence: ParsedCvEvidence[] = [],
   ): Promise<ProfileWithRelations> {
@@ -48,6 +52,8 @@ export class ProfileCreationService {
       const profile = await tx.applicantProfile.create({
         data: {
           ...profileData,
+          companyId: requester.companyId,
+          createdById: requester.sub,
           ...(educationalBackground !== undefined && {
             educationalBackground: {
               create: educationalBackground.map(({ startDate, endDate, ...education }) => ({
@@ -98,28 +104,7 @@ export class ProfileCreationService {
   private async findByIdWithSkills(tx: Prisma.TransactionClient, id: string) {
     return tx.applicantProfile.findUniqueOrThrow({
       where: { id },
-      include: {
-        skills: {
-          include: {
-            requirement: true,
-          },
-        },
-        culturalFits: {
-          include: {
-            culturalFit: true,
-          },
-        },
-        educationalBackground: true,
-        applications: {
-          include: {
-            jobOpening: true,
-          },
-        },
-        profileInterviews: {
-          orderBy: { startDate: 'desc' },
-        },
-        competencyEvidence: { orderBy: { createdAt: 'desc' } },
-      },
+      include: profileDetailInclude,
     });
   }
 

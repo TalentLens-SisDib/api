@@ -10,7 +10,7 @@ import { JobOpeningFindService } from './job-opening-find.service.js';
 import { JobApplicationService } from './job-application.service.js';
 
 describe('JobApplicationService', () => {
-  const jobOpening = { id: 'job-1', userId: 7, requirements: [], culturalFits: [] };
+  const jobOpening = { id: 'job-1', userId: 7, companyId: 1, requirements: [], culturalFits: [] };
   const appliedAt = new Date('2026-10-04T19:53:33.840Z');
   const requester: AuthPayload = {
     sub: 7,
@@ -20,7 +20,7 @@ describe('JobApplicationService', () => {
     companyId: 1,
   };
   const prisma = {
-    applicantProfile: { findUnique: vi.fn() },
+    applicantProfile: { findFirst: vi.fn() },
     jobApplication: { findMany: vi.fn(), create: vi.fn(), deleteMany: vi.fn() },
   };
   const jobOpeningFindService = { findById: vi.fn() };
@@ -44,6 +44,10 @@ describe('JobApplicationService', () => {
         currentStep: null,
         status: 'InProgress',
         stageUpdatedAt: appliedAt,
+        closureReason: null,
+        closureNotes: null,
+        closedAt: null,
+        closedBy: null,
         profile: { name: 'Ada Lovelace', skills: [], culturalFits: [] },
       },
     ]);
@@ -57,6 +61,7 @@ describe('JobApplicationService', () => {
         currentStep: null,
         status: 'InProgress',
         stageUpdatedAt: appliedAt,
+        closure: null,
         priority: null,
         priorityScore: {
           requiredSkills: 0,
@@ -82,7 +87,7 @@ describe('JobApplicationService', () => {
   });
 
   it('creates an application for an owner and returns the response contract', async () => {
-    prisma.applicantProfile.findUnique.mockResolvedValue({
+    prisma.applicantProfile.findFirst.mockResolvedValue({
       name: 'Ada Lovelace',
     });
     const response = {
@@ -92,6 +97,10 @@ describe('JobApplicationService', () => {
       currentStep: null,
       status: 'InProgress',
       stageUpdatedAt: appliedAt,
+      closureReason: null,
+      closureNotes: null,
+      closedAt: null,
+      closedBy: null,
       profile: { name: 'Ada Lovelace' },
     };
     prisma.jobApplication.create.mockResolvedValue(response);
@@ -106,7 +115,11 @@ describe('JobApplicationService', () => {
       currentStep: null,
       status: 'InProgress',
       stageUpdatedAt: appliedAt,
+      closure: null,
     });
+    expect(prisma.applicantProfile.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'profile-1', companyId: 1 } }),
+    );
     expect(prisma.jobApplication.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ jobOpeningId: 'job-1', profileId: 'profile-1' }),
@@ -120,7 +133,7 @@ describe('JobApplicationService', () => {
         profileId: 'profile-1',
       }),
     ).rejects.toBeInstanceOf(ForbiddenException);
-    expect(prisma.applicantProfile.findUnique).not.toHaveBeenCalled();
+    expect(prisma.applicantProfile.findFirst).not.toHaveBeenCalled();
 
     prisma.jobApplication.create.mockResolvedValue({
       profileId: 'profile-1',
@@ -129,9 +142,13 @@ describe('JobApplicationService', () => {
       currentStep: null,
       status: 'InProgress',
       stageUpdatedAt: appliedAt,
+      closureReason: null,
+      closureNotes: null,
+      closedAt: null,
+      closedBy: null,
       profile: { name: 'Ada Lovelace' },
     });
-    prisma.applicantProfile.findUnique.mockResolvedValue({
+    prisma.applicantProfile.findFirst.mockResolvedValue({
       name: 'Ada Lovelace',
     });
     await expect(
@@ -142,12 +159,12 @@ describe('JobApplicationService', () => {
   });
 
   it('returns 404 for missing profiles and 409 for duplicate applications', async () => {
-    prisma.applicantProfile.findUnique.mockResolvedValue(null);
+    prisma.applicantProfile.findFirst.mockResolvedValue(null);
     await expect(
       service.create(requester, 'job-1', { profileId: 'missing' }),
     ).rejects.toBeInstanceOf(NotFoundException);
 
-    prisma.applicantProfile.findUnique.mockResolvedValue({
+    prisma.applicantProfile.findFirst.mockResolvedValue({
       name: 'Ada Lovelace',
     });
     prisma.jobApplication.create.mockRejectedValue(
@@ -198,5 +215,25 @@ describe('JobApplicationService', () => {
         'profile-1',
       ),
     ).resolves.toBeUndefined();
+  });
+
+  it('denies an administrator from another company', async () => {
+    await expect(
+      service.create({ ...requester, sub: 8, role: Role.Admin, companyId: 2 }, 'job-1', {
+        profileId: 'profile-1',
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.applicantProfile.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('does not link a profile owned by another company', async () => {
+    prisma.applicantProfile.findFirst.mockResolvedValue(null);
+    await expect(
+      service.create(requester, 'job-1', { profileId: 'other-company-profile' }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.applicantProfile.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'other-company-profile', companyId: 1 } }),
+    );
+    expect(prisma.jobApplication.create).not.toHaveBeenCalled();
   });
 });

@@ -9,7 +9,21 @@ const credentialsSelect = {
   password: true,
   role: true,
   companyId: true,
+  company: { select: { name: true } },
 } as const;
+
+const sessionUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  companyId: true,
+  company: { select: { name: true } },
+} as const;
+
+export type SessionUser = Prisma.UserGetPayload<{
+  select: typeof sessionUserSelect;
+}>;
 
 export type UserCredentials = Prisma.UserGetPayload<{
   select: typeof credentialsSelect;
@@ -28,6 +42,20 @@ export class UserFindService {
 
   async findById(id: number): Promise<User> {
     const user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (user === null) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+
+    return user;
+  }
+
+  /** Dados do usuário que vão no access token, incluindo o nome da empresa. */
+  async findSessionUserById(id: number): Promise<SessionUser> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: sessionUserSelect,
+    });
 
     if (user === null) {
       throw new NotFoundException(`User with id ${id} not found`);

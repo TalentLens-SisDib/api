@@ -62,8 +62,9 @@ export class TalentPoolController {
   @ApiOkResponse({ type: [TalentPoolEntryResponseDto] })
   findAll(
     @Query() query: TalentPoolQuery,
+    @CurrentUser() requester: AuthPayload,
   ): Promise<TalentPoolEntryResponseDto[]> {
-    return this.talentPoolService.findAll(query.search);
+    return this.talentPoolService.findAll(requester.companyId, query.search);
   }
 
   @Get(':profileId')
@@ -74,8 +75,9 @@ export class TalentPoolController {
   @ApiNotFoundResponse({ description: 'Profile is not in the talent pool' })
   findOne(
     @Param('profileId', new ParseUUIDPipe()) profileId: string,
+    @CurrentUser() requester: AuthPayload,
   ): Promise<TalentPoolEntryResponseDto> {
-    return this.talentPoolService.findOne(profileId);
+    return this.talentPoolService.findOne(requester.companyId, profileId);
   }
 
   @Put(':profileId')
@@ -92,6 +94,7 @@ export class TalentPoolController {
     @CurrentUser() requester: AuthPayload,
   ): Promise<TalentPoolEntryResponseDto> {
     return this.talentPoolService.upsert(
+      requester.companyId,
       profileId,
       dto.note || null,
       requester.sub,
@@ -107,7 +110,8 @@ export class TalentPoolController {
   @ApiNotFoundResponse({ description: 'Profile is not in the talent pool' })
   remove(
     @Param('profileId', new ParseUUIDPipe()) profileId: string,
+    @CurrentUser() requester: AuthPayload,
   ): Promise<void> {
-    return this.talentPoolService.remove(profileId);
+    return this.talentPoolService.remove(requester.companyId, profileId);
   }
 }

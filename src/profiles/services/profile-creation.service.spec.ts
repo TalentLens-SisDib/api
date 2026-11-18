@@ -1,5 +1,6 @@
 import { BadGatewayException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AuthPayload } from '../../auth/auth-payload.js';
 import { CreateProfileDto } from '../dto/create-profile.dto.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { ProfileCreationService } from './profile-creation.service.js';
@@ -14,6 +15,7 @@ describe('ProfileCreationService.createFromCv', () => {
     size: 100,
     buffer: Buffer.from('%PDF-1.7'),
   } as Express.Multer.File;
+  const requester = { sub: 7, companyId: 2, role: 'Recruiter', name: 'Rita', email: 'rita@example.com' } as AuthPayload;
   const profile = {
     id: 'profile-1',
     name: 'Ada Lovelace',
@@ -77,7 +79,7 @@ describe('ProfileCreationService.createFromCv', () => {
       ],
     } satisfies CreateProfileDto);
 
-    const result = await service.createFromCv(cv);
+    const result = await service.createFromCv(requester, cv);
 
     expect(aiService.parsePdf).toHaveBeenCalledWith(cv);
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
@@ -85,6 +87,8 @@ describe('ProfileCreationService.createFromCv', () => {
       data: {
         name: 'Ada Lovelace',
         description: 'Analytical engine pioneer',
+        companyId: 2,
+        createdById: 7,
         educationalBackground: {
           create: [
             {
@@ -137,14 +141,14 @@ describe('ProfileCreationService.createFromCv', () => {
   ])('rejects %s before creating records', async (_label, parsed) => {
     aiService.parsePdf.mockResolvedValue(parsed as CreateProfileDto);
 
-    await expect(service.createFromCv(cv)).rejects.toBeInstanceOf(BadGatewayException);
+    await expect(service.createFromCv(requester, cv)).rejects.toBeInstanceOf(BadGatewayException);
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   it('does not create a profile when the AI parser fails', async () => {
     aiService.parsePdf.mockRejectedValue(new BadGatewayException('provider unavailable'));
 
-    await expect(service.createFromCv(cv)).rejects.toThrow('provider unavailable');
+    await expect(service.createFromCv(requester, cv)).rejects.toThrow('provider unavailable');
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

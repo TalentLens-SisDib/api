@@ -3,7 +3,7 @@ import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UpdateProfileDto } from '../dto/update-profile.dto.js';
 import { ProfileWithRelations } from '../profile-types.js';
-import { ProfileFindService } from './profile-find.service.js';
+import { ProfileFindService, profileDetailInclude } from './profile-find.service.js';
 import { SkillsService } from './skills.service.js';
 import { CulturalFitService } from './cultural-fit.service.js';
 
@@ -17,10 +17,11 @@ export class ProfileEditService {
   ) {}
 
   async update(
+    companyId: number,
     id: string,
     dto: UpdateProfileDto,
   ): Promise<ProfileWithRelations> {
-    await this.profileFindService.findById(id);
+    await this.profileFindService.findById(id, companyId);
 
     const { skills, culturalFits, educationalBackground, ...updateData } = dto;
 
@@ -84,28 +85,7 @@ export class ProfileEditService {
   private async findByIdWithSkills(tx: Prisma.TransactionClient, id: string) {
     return tx.applicantProfile.findUniqueOrThrow({
       where: { id },
-      include: {
-        skills: {
-          include: {
-            requirement: true,
-          },
-        },
-        culturalFits: {
-          include: {
-            culturalFit: true,
-          },
-        },
-        educationalBackground: true,
-        applications: {
-          include: {
-            jobOpening: true,
-          },
-        },
-        profileInterviews: {
-          orderBy: { startDate: 'desc' },
-        },
-        competencyEvidence: { orderBy: { createdAt: 'desc' } },
-      },
+      include: profileDetailInclude,
     });
   }
 }

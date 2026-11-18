@@ -143,8 +143,9 @@ export class JobApplicationService {
     const jobOpening = await this.jobOpeningFindService.findById(jobOpeningId);
     assertCanManageJobOpening(requester, jobOpening);
 
-    const profile = await this.prisma.applicantProfile.findUnique({
-      where: { id: dto.profileId },
+    // Só candidatos da mesma empresa da vaga podem ser vinculados.
+    const profile = await this.prisma.applicantProfile.findFirst({
+      where: { id: dto.profileId, companyId: jobOpening.companyId },
       select: { name: true },
     });
     if (profile === null) {

@@ -958,6 +958,144 @@
         ]
       }
     },
+    "/job-openings/{id}/applications/{profileId}/advance": {
+      "post": {
+        "operationId": "JobOpeningsController_advanceApplication",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceJobApplicationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated application",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobApplicationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "An id or payload is invalid"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not manage that job opening"
+          },
+          "404": {
+            "description": "No job opening or application exists with those ids"
+          },
+          "409": {
+            "description": "The application cannot advance from its current state"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Advance an application to the next job stage",
+        "tags": [
+          "job-openings"
+        ]
+      }
+    },
+    "/job-openings/{id}/applications/{profileId}/status": {
+      "patch": {
+        "operationId": "JobOpeningsController_updateApplicationStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateJobApplicationStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated application",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobApplicationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "An id or payload is invalid"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not manage that job opening"
+          },
+          "404": {
+            "description": "No job opening or application exists with those ids"
+          },
+          "409": {
+            "description": "The status change is not allowed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an application status",
+        "tags": [
+          "job-openings"
+        ]
+      }
+    },
     "/job-openings/{id}/applications/{profileId}": {
       "delete": {
         "operationId": "JobOpeningsController_removeApplication",
@@ -2829,6 +2967,104 @@
           "updatedAt"
         ]
       },
+      "JobApplicationStepResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "order"
+        ]
+      },
+      "JobApplicationClosedByResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "JobApplicationClosureResponseDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "TechnicalMismatch",
+              "BehavioralMismatch",
+              "CandidateWithdrew",
+              "OfferDeclined",
+              "PositionFilled",
+              "Other"
+            ]
+          },
+          "notes": {
+            "type": "object",
+            "nullable": true,
+            "maxLength": 1000
+          },
+          "closedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "closedBy": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobApplicationClosedByResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "reason",
+          "notes",
+          "closedAt",
+          "closedBy"
+        ]
+      },
+      "CandidatePriorityScoreDto": {
+        "type": "object",
+        "properties": {
+          "requiredSkills": {
+            "type": "number"
+          },
+          "requiredBehavioral": {
+            "type": "number"
+          },
+          "desiredSkills": {
+            "type": "number"
+          },
+          "desiredBehavioral": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "requiredSkills",
+          "requiredBehavioral",
+          "desiredSkills",
+          "desiredBehavioral"
+        ]
+      },
       "JobApplicationResponseDto": {
         "type": "object",
         "properties": {
@@ -2848,13 +3084,56 @@
             "format": "date-time",
             "type": "string",
             "example": "2026-10-04T19:53:33.840Z"
+          },
+          "currentStep": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobApplicationStepResponseDto"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "InProgress",
+              "Hired",
+              "Rejected"
+            ]
+          },
+          "stageUpdatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-11-08T14:49:15.018Z"
+          },
+          "closure": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobApplicationClosureResponseDto"
+              }
+            ]
+          },
+          "priority": {
+            "type": "object",
+            "nullable": true,
+            "description": "Candidate rank; null when the job has no criteria"
+          },
+          "priorityScore": {
+            "$ref": "#/components/schemas/CandidatePriorityScoreDto"
           }
         },
         "required": [
           "profileId",
           "profileName",
           "jobOpeningId",
-          "appliedAt"
+          "appliedAt",
+          "currentStep",
+          "status",
+          "stageUpdatedAt",
+          "closure"
         ]
       },
       "CreateJobApplicationDto": {
@@ -2868,6 +3147,62 @@
         },
         "required": [
           "profileId"
+        ]
+      },
+      "AdvanceJobApplicationDto": {
+        "type": "object",
+        "properties": {
+          "fromStepId": {
+            "type": "object",
+            "description": "Etapa exibida antes da mudança; null indica que ainda não iniciou",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "fromStepId"
+        ]
+      },
+      "CloseJobApplicationDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "TechnicalMismatch",
+              "BehavioralMismatch",
+              "CandidateWithdrew",
+              "OfferDeclined",
+              "PositionFilled",
+              "Other"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "UpdateJobApplicationStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "InProgress",
+              "Hired",
+              "Rejected"
+            ]
+          },
+          "closure": {
+            "$ref": "#/components/schemas/CloseJobApplicationDto"
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "JobOpeningSkillDto": {
@@ -3159,6 +3494,51 @@
           "updatedAt"
         ]
       },
+      "CompetencyEvidenceResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "competencyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "competencyName": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "curriculo",
+              "entrevista",
+              "avaliacao",
+              "outro"
+            ]
+          },
+          "sourceLabel": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "competencyId",
+          "competencyName",
+          "sourceType",
+          "sourceLabel",
+          "excerpt",
+          "createdAt"
+        ]
+      },
       "ProfileJobOpeningResponseDto": {
         "type": "object",
         "properties": {
@@ -3230,6 +3610,15 @@
             "type": "string",
             "example": "2026-10-04T19:53:33.840Z"
           },
+          "closure": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobApplicationClosureResponseDto"
+              }
+            ]
+          },
           "jobOpening": {
             "$ref": "#/components/schemas/ProfileJobOpeningResponseDto"
           }
@@ -3238,7 +3627,25 @@
           "profileId",
           "jobOpeningId",
           "appliedAt",
+          "closure",
           "jobOpening"
+        ]
+      },
+      "ProfileCreatorResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3
+          },
+          "name": {
+            "type": "string",
+            "example": "Maria Recrutadora"
+          }
+        },
+        "required": [
+          "id",
+          "name"
         ]
       },
       "ProfileResponseDto": {
@@ -3280,6 +3687,12 @@
               "$ref": "#/components/schemas/ProfileInterviewResponseDto"
             }
           },
+          "competencyEvidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompetencyEvidenceResponseDto"
+            }
+          },
           "applications": {
             "type": "array",
             "items": {
@@ -3292,6 +3705,26 @@
             "items": {
               "type": "string"
             }
+          },
+          "companyId": {
+            "type": "number",
+            "description": "Company that owns the candidate record",
+            "example": 1
+          },
+          "createdById": {
+            "type": "object",
+            "description": "Recruiter who registered the candidate",
+            "example": 3,
+            "nullable": true
+          },
+          "createdBy": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfileCreatorResponseDto"
+              }
+            ]
           },
           "createdAt": {
             "format": "date-time",
@@ -3308,6 +3741,7 @@
           "id",
           "name",
           "applications",
+          "companyId",
           "createdAt",
           "updatedAt"
         ]

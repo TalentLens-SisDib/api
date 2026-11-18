@@ -33,9 +33,10 @@ export class ProfileInterviewService {
     };
   }
 
-  private async assertProfileExists(profileId: string): Promise<void> {
-    const profile = await this.prisma.applicantProfile.findUnique({
-      where: { id: profileId },
+  /** Perfis de outra empresa contam como inexistentes. */
+  private async assertProfileExists(profileId: string, companyId: number): Promise<void> {
+    const profile = await this.prisma.applicantProfile.findFirst({
+      where: { id: profileId, companyId },
       select: { id: true },
     });
     if (!profile) {
@@ -54,6 +55,7 @@ export class ProfileInterviewService {
     profileId: string,
     profileInterviewId: string,
   ): Promise<ProfileInterview> {
+    await this.assertProfileExists(profileId, requester.companyId);
     const profileInterview = await this.prisma.profileInterview.findUnique({
       where: { id: profileInterviewId },
       include: { interview: { select: { userId: true } } },
@@ -70,7 +72,7 @@ export class ProfileInterviewService {
     profileId: string,
     dto: AddProfileInterviewDto,
   ): Promise<ProfileInterviewResponseDto> {
-    await this.assertProfileExists(profileId);
+    await this.assertProfileExists(profileId, requester.companyId);
 
     const interview = await this.prisma.interview.findUnique({
       where: { id: dto.interviewId },
@@ -115,8 +117,8 @@ export class ProfileInterviewService {
     }
   }
 
-  async findByProfile(profileId: string): Promise<ProfileInterviewResponseDto[]> {
-    await this.assertProfileExists(profileId);
+  async findByProfile(requester: AuthPayload, profileId: string): Promise<ProfileInterviewResponseDto[]> {
+    await this.assertProfileExists(profileId, requester.companyId);
 
     const profileInterviews = await this.prisma.profileInterview.findMany({
       where: { profileId },
@@ -125,7 +127,12 @@ export class ProfileInterviewService {
     return profileInterviews.map((pi) => this.toResponse(pi));
   }
 
-  async findOne(profileId: string, profileInterviewId: string): Promise<ProfileInterviewResponseDto> {
+  async findOne(
+    requester: AuthPayload,
+    profileId: string,
+    profileInterviewId: string,
+  ): Promise<ProfileInterviewResponseDto> {
+    await this.assertProfileExists(profileId, requester.companyId);
     const profileInterview = await this.prisma.profileInterview.findUnique({
       where: { id: profileInterviewId },
     });

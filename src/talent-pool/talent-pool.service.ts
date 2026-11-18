@@ -4,10 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Prisma } from '../generated/prisma/client.js';
-import {
-  isForeignKeyConstraintViolation,
-  isRecordNotFound,
-} from '../prisma/prisma-error.js';
+import { isForeignKeyConstraintViolation } from '../prisma/prisma-error.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import {
   toProfileCulturalFits,
@@ -54,8 +51,9 @@ function toEntryResponse({
 export class TalentPoolService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(search?: string): Promise<TalentPoolEntryResponseDto[]> {
+  async findAll(companyId: number, search?: string): Promise<TalentPoolEntryResponseDto[]> {
     const entries = await this.prisma.talentPoolEntry.findMany({
+      where: { profile: { companyId } },
       orderBy: { addedAt: 'desc' },
       select: entrySelect,
     });
@@ -78,9 +76,9 @@ export class TalentPoolService {
     ).map(toEntryResponse);
   }
 
-  async findOne(profileId: string): Promise<TalentPoolEntryResponseDto> {
-    const entry = await this.prisma.talentPoolEntry.findUnique({
-      where: { profileId },
+  async findOne(companyId: number, profileId: string): Promise<TalentPoolEntryResponseDto> {
+    const entry = await this.prisma.talentPoolEntry.findFirst({
+      where: { profileId, profile: { companyId } },
       select: entrySelect,
     });
     if (!entry) {
@@ -92,10 +90,12 @@ export class TalentPoolService {
   }
 
   async upsert(
+    companyId: number,
     profileId: string,
     note: string | null,
     addedById: number,
   ): Promise<TalentPoolEntryResponseDto> {
+    await this.assertProfileInCompany(companyId, profileId);
     try {
       // Keep relation reads out of the upsert so Prisma can use SQLite's atomic upsert.
       const [, entry] = await this.prisma.$transaction([
@@ -126,19 +126,25 @@ export class TalentPoolService {
     }
   }
 
-  async remove(profileId: string): Promise<void> {
-    try {
-      await this.prisma.talentPoolEntry.delete({
-        where: { profileId },
-        select: { profileId: true },
-      });
-    } catch (error) {
-      if (isRecordNotFound(error)) {
-        throw new NotFoundException(
-          `Profile with id ${profileId} is not in the talent pool`,
-        );
-      }
-      throw error;
+  async remove(companyId: number, profileId: string): Promise<void> {
+    const { count } = await this.prisma.talentPoolEntry.deleteMany({
+      where: { profileId, profile: { companyId } },
+    });
+    if (count === 0) {
+      throw new NotFoundException(
+        `Profile with id ${profileId} is not in the talent pool`,
+      );
+    }
+  }
+
+  /** Perfis de outra empresa contam como inexistentes. */
+  private async assertProfileInCompany(companyId: number, profileId: string): Promise<void> {
+    const profile = await this.prisma.applicantProfile.findFirst({
+      where: { id: profileId, companyId },
+      select: { id: true },
+    });
+    if (!profile) {
+      throw new NotFoundException(`Profile with id ${profileId} not found`);
     }
   }
 }
