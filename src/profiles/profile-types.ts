@@ -7,6 +7,7 @@ import {
   JobOpening,
   ProfileInterview,
   Skill,
+  User,
 } from '../generated/prisma/client.js';
 
 export type ProfileWithRelations = ApplicantProfile & {
@@ -15,5 +16,5 @@ export type ProfileWithRelations = ApplicantProfile & {
   educationalBackground: Education[];
   profileInterviews: ProfileInterview[];
   competencyEvidence?: CompetencyEvidence[];
-  applications: Array<JobApplication & { jobOpening: JobOpening }>;
+  applications: Array<JobApplication & { jobOpening: JobOpening; closedBy?: Pick<User, 'id' | 'name'> | null }>;
 };

@@ -1,5 +1,27 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ApplicationStatus } from '../../generated/prisma/client.js';
+import { ApplicationStatus, ClosureReason } from '../../generated/prisma/client.js';
+
+export class JobApplicationClosedByResponseDto {
+  @ApiProperty()
+  id!: number;
+
+  @ApiProperty()
+  name!: string;
+}
+
+export class JobApplicationClosureResponseDto {
+  @ApiProperty({ enum: ClosureReason })
+  reason!: ClosureReason;
+
+  @ApiProperty({ nullable: true, maxLength: 1000 })
+  notes!: string | null;
+
+  @ApiProperty({ type: Date })
+  closedAt!: Date;
+
+  @ApiProperty({ type: JobApplicationClosedByResponseDto, nullable: true })
+  closedBy!: JobApplicationClosedByResponseDto | null;
+}
 
 class JobApplicationStepResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -47,6 +69,9 @@ export class JobApplicationResponseDto {
 
   @ApiProperty({ example: '2026-11-08T14:49:15.018Z' })
   stageUpdatedAt!: Date;
+
+  @ApiProperty({ type: JobApplicationClosureResponseDto, nullable: true })
+  closure!: JobApplicationClosureResponseDto | null;
 
   @ApiPropertyOptional({ nullable: true, description: 'Candidate rank; null when the job has no criteria' })
   priority?: number | null;

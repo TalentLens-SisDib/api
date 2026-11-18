@@ -23,6 +23,7 @@ export class ProfileFindService {
         applications: {
           include: {
             jobOpening: true,
+            closedBy: { select: { id: true, name: true } },
           },
         },
         profileInterviews: {
@@ -51,6 +52,7 @@ export class ProfileFindService {
         applications: {
           include: {
             jobOpening: true,
+            closedBy: { select: { id: true, name: true } },
           },
         },
         profileInterviews: {

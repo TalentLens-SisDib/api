@@ -1,9 +1,10 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ApplicationStatus, Prisma } from '../../generated/prisma/client.js';
+import { ApplicationStatus, ClosureReason, Prisma } from '../../generated/prisma/client.js';
 import type { AuthPayload } from '../../auth/auth-payload.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import {
@@ -23,6 +24,10 @@ const applicationResponseSelect = {
   appliedAt: true,
   status: true,
   stageUpdatedAt: true,
+  closureReason: true,
+  closureNotes: true,
+  closedAt: true,
+  closedBy: { select: { id: true, name: true } },
   currentStep: { select: { id: true, name: true, order: true } },
   profile: { select: { name: true } },
 } satisfies Prisma.JobApplicationSelect;
@@ -61,8 +66,17 @@ function comparePriorityScores(a: CandidatePriorityScore, b: CandidatePrioritySc
 function toResponse(
   application: SelectedJobApplicationResponse,
 ): JobApplicationResponseDto {
-  const { profile, ...response } = application;
-  return { ...response, profileName: profile.name };
+  const { profile, closureReason, closureNotes, closedAt, closedBy, ...response } = application;
+  return {
+    ...response,
+    profileName: profile.name,
+    closure: closureReason === null ? null : {
+      reason: closureReason,
+      notes: closureNotes,
+      closedAt: closedAt!,
+      closedBy,
+    },
+  };
 }
 
 @Injectable()
@@ -92,14 +106,13 @@ export class JobApplicationService {
       const profileSkills = new Set(profile.skills.map((skill) => skill.requirementId));
       const profileFits = new Set(profile.culturalFits.map((fit) => fit.culturalFitId));
       return {
-        ...application,
-        profileName: profile.name,
+        ...toResponse({ ...application, profile }),
         priority: null,
         priorityScore: {
-          requiredSkills: requiredSkills.filter((criterion) => profileSkills.has(criterion.requirementId)).length,
-          requiredBehavioral: requiredBehavioral.filter((criterion) => profileFits.has(criterion.culturalFitId)).length,
-          desiredSkills: desiredSkills.filter((criterion) => profileSkills.has(criterion.requirementId)).length,
-          desiredBehavioral: desiredBehavioral.filter((criterion) => profileFits.has(criterion.culturalFitId)).length,
+          requiredSkills: requiredSkills.filter((criterion) => profileSkills.has(criterion.requirement.id)).length,
+          requiredBehavioral: requiredBehavioral.filter((criterion) => profileFits.has(criterion.culturalFit.id)).length,
+          desiredSkills: desiredSkills.filter((criterion) => profileSkills.has(criterion.requirement.id)).length,
+          desiredBehavioral: desiredBehavioral.filter((criterion) => profileFits.has(criterion.culturalFit.id)).length,
         },
       };
     });
@@ -246,8 +259,18 @@ export class JobApplicationService {
       select: { currentStepId: true, status: true },
     });
     if (!application) throw new NotFoundException('Job application not found');
+    if (dto.status !== ApplicationStatus.Rejected && dto.closure) {
+      throw new BadRequestException('Closure details are only allowed when rejecting an application');
+    }
     if (application.status === dto.status) {
       return this.getResponse(jobOpeningId, profileId);
+    }
+    if (dto.status === ApplicationStatus.Rejected && !dto.closure) {
+      throw new BadRequestException('Closure details are required when rejecting an application');
+    }
+    const notes = dto.closure?.notes?.trim();
+    if (dto.closure?.reason === ClosureReason.Other && !notes) {
+      throw new BadRequestException('Closure notes are required for the Other reason');
     }
     if (
       application.status !== ApplicationStatus.InProgress &&
@@ -266,6 +289,7 @@ export class JobApplicationService {
       }
     }
 
+    const now = new Date();
     const updated = await this.prisma.jobApplication.updateMany({
       where: {
         profileId,
@@ -273,7 +297,14 @@ export class JobApplicationService {
         currentStepId: application.currentStepId,
         status: application.status,
       },
-      data: { status: dto.status, stageUpdatedAt: new Date() },
+      data: {
+        status: dto.status,
+        stageUpdatedAt: now,
+        closureReason: dto.status === ApplicationStatus.Rejected ? dto.closure!.reason : null,
+        closureNotes: dto.status === ApplicationStatus.Rejected ? notes || null : null,
+        closedAt: dto.status === ApplicationStatus.Rejected ? now : null,
+        closedById: dto.status === ApplicationStatus.Rejected ? requester.sub : null,
+      },
     });
     if (updated.count === 0) {
       throw new ConflictException('The application status has changed');

@@ -108,6 +108,15 @@ export class ProfilesController {
           createdAt: evidence.createdAt,
         })),
       }),
+      applications: profile.applications.map(({ closureReason, closureNotes, closedAt, closedBy, ...application }) => ({
+        ...application,
+        closure: closureReason === null ? null : {
+          reason: closureReason,
+          notes: closureNotes,
+          closedAt: closedAt!,
+          closedBy: closedBy ?? null,
+        },
+      })),
     };
   }
 

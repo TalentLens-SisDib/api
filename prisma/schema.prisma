@@ -23,6 +23,15 @@ enum ApplicationStatus {
   Rejected
 }
 
+enum ClosureReason {
+  TechnicalMismatch
+  BehavioralMismatch
+  CandidateWithdrew
+  OfferDeclined
+  PositionFilled
+  Other
+}
+
 enum CompetencyEvidenceSource {
   curriculo
   entrevista
@@ -53,6 +62,7 @@ model User {
   jobOpenings JobOpening[]
   interviews Interview[]
   talentPoolEntries TalentPoolEntry[]
+  closedApplications JobApplication[] @relation("ApplicationClosedBy")
 
   @@index([companyId])
 }
@@ -230,6 +240,11 @@ model JobApplication {
   currentStep    Step?             @relation(fields: [currentStepId], references: [id], onDelete: SetNull)
   status         ApplicationStatus @default(InProgress)
   stageUpdatedAt DateTime          @default(now())
+  closureReason  ClosureReason?
+  closureNotes   String?
+  closedAt       DateTime?
+  closedById     Int?
+  closedBy       User?              @relation("ApplicationClosedBy", fields: [closedById], references: [id], onDelete: SetNull)
 
   @@id([profileId, jobOpeningId])
 }
