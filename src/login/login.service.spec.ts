@@ -21,7 +21,7 @@ describe('LoginService token refresh', () => {
 
   let jwtService: JwtService;
   let userFindService: UserFindService & {
-    findById: ReturnType<typeof vi.fn>;
+    findSessionUserById: ReturnType<typeof vi.fn>;
     findCredentialsByEmail: ReturnType<typeof vi.fn>;
   };
   let service: LoginService;
@@ -29,7 +29,7 @@ describe('LoginService token refresh', () => {
   beforeEach(() => {
     jwtService = new JwtService({ secret });
     userFindService = {
-      findById: vi.fn().mockResolvedValue(user),
+      findSessionUserById: vi.fn().mockResolvedValue({ ...user, company: { name: 'Acme' } }),
       findCredentialsByEmail: vi.fn(),
     } as unknown as typeof userFindService;
     service = new LoginService(userFindService, jwtService);
@@ -43,6 +43,7 @@ describe('LoginService token refresh', () => {
       password: await hashPassword('test-password'),
       role: user.role,
       companyId: user.companyId,
+      company: { name: 'Acme' },
     });
 
     const response = await service.login({
@@ -55,6 +56,8 @@ describe('LoginService token refresh', () => {
       jwtService.verifyAsync(response.accessToken),
     ).resolves.toMatchObject({
       sub: user.id,
+      companyId: user.companyId,
+      companyName: 'Acme',
       tokenUse: 'access',
     });
     await expect(
@@ -79,9 +82,10 @@ describe('LoginService token refresh', () => {
       email: user.email,
       role: user.role,
       companyId: user.companyId,
+      companyName: 'Acme',
       tokenUse: 'access',
     });
-    expect(userFindService.findById).toHaveBeenCalledWith(user.id);
+    expect(userFindService.findSessionUserById).toHaveBeenCalledWith(user.id);
   });
 
   it('rejects an invalid token', async () => {
@@ -117,7 +121,7 @@ describe('LoginService token refresh', () => {
   });
 
   it('rejects refresh tokens for users that no longer exist', async () => {
-    userFindService.findById.mockRejectedValue(new NotFoundException());
+    userFindService.findSessionUserById.mockRejectedValue(new NotFoundException());
     const token = await jwtService.signAsync(
       { sub: user.id, tokenUse: 'refresh' },
       { expiresIn: 60 },
