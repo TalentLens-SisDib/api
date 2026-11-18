@@ -2054,6 +2054,186 @@
           "interviews"
         ]
       }
+    },
+    "/talent-pool": {
+      "get": {
+        "operationId": "TalentPoolController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive substring of a profile name, skill, cultural fit or note",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TalentPoolEntryResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List talent pool entries, newest first",
+        "tags": [
+          "talent-pool"
+        ]
+      }
+    },
+    "/talent-pool/{profileId}": {
+      "get": {
+        "operationId": "TalentPoolController_findOne",
+        "parameters": [
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TalentPoolEntryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid profile UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "Profile is not in the talent pool"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the talent pool entry for a profile",
+        "tags": [
+          "talent-pool"
+        ]
+      },
+      "put": {
+        "operationId": "TalentPoolController_put",
+        "parameters": [
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutTalentPoolEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TalentPoolEntryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid profile UUID or note"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "Profile does not exist"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a profile or replace the note on an existing entry",
+        "tags": [
+          "talent-pool"
+        ]
+      },
+      "delete": {
+        "operationId": "TalentPoolController_remove",
+        "parameters": [
+          {
+            "name": "profileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Invalid profile UUID"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "404": {
+            "description": "Profile is not in the talent pool"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a profile from the talent pool",
+        "tags": [
+          "talent-pool"
+        ]
+      }
     }
   },
   "info": {
@@ -3287,6 +3467,108 @@
       "UpdateInterviewDto": {
         "type": "object",
         "properties": {}
+      },
+      "TalentPoolAuthorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "TalentPoolProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileSkillResponseDto"
+            }
+          },
+          "culturalFits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileCulturalFitResponseDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "skills",
+          "culturalFits"
+        ]
+      },
+      "TalentPoolEntryResponseDto": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 1000
+          },
+          "addedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "addedBy": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TalentPoolAuthorDto"
+              }
+            ]
+          },
+          "profile": {
+            "$ref": "#/components/schemas/TalentPoolProfileDto"
+          }
+        },
+        "required": [
+          "profileId",
+          "note",
+          "addedAt",
+          "updatedAt",
+          "addedBy",
+          "profile"
+        ]
+      },
+      "PutTalentPoolEntryDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 1000
+          }
+        }
       }
     }
   }
