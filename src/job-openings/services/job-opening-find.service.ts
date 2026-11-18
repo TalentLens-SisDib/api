@@ -44,7 +44,7 @@ export class JobOpeningFindService {
     });
   }
 
-  async findById(id: string): Promise<JobOpening & { requirements: Array<{ requirement: { id: string; name: string; description: string | null } } & { isRequired: boolean }>; culturalFits: Array<{ culturalFit: { id: string; name: string; description: string | null } } & { isRequired: boolean }> }> {
+  async findById(id: string) {
     const jobOpening = await this.prisma.jobOpening.findUnique({
       where: { id },
       include: {

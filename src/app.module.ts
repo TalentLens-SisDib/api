@@ -11,9 +11,22 @@ import { JobOpeningsModule } from './job-openings/job-openings.module.js';
 import { ProfilesModule } from './profiles/profiles.module.js';
 import { StepsModule } from './steps/steps.module.js';
 import { InterviewsModule } from './interviews/interviews.module.js';
+import { TalentPoolModule } from './talent-pool/talent-pool.module.js';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, LoginModule, SkillsModule, CulturalFitsModule, JobOpeningsModule, ProfilesModule, StepsModule, InterviewsModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    LoginModule,
+    SkillsModule,
+    CulturalFitsModule,
+    JobOpeningsModule,
+    ProfilesModule,
+    StepsModule,
+    InterviewsModule,
+    TalentPoolModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
