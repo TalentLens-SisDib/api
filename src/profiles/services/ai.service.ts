@@ -4,7 +4,7 @@ import { validate } from 'class-validator';
 import { PDFParse } from 'pdf-parse';
 import { CreateProfileDto } from '../dto/create-profile.dto.js';
 import { getAiConfig } from './ai.config.js';
-import { generateProfile } from './ai.provider.js';
+import { generateAiText } from './ai.provider.js';
 
 export const MAX_CV_BYTES = 5 * 1024 * 1024;
 const MAX_CV_TEXT_LENGTH = 50000;
@@ -62,7 +62,7 @@ function appearsInCv(cvText: string, claim: string): boolean {
 @Injectable()
 export class AiService {
   async parseLinkedinPerson(person: Record<string, unknown>): Promise<CreateProfileDto> {
-    const content = await generateProfile(getAiConfig(), LINKEDIN_PROFILE_INSTRUCTIONS, JSON.stringify(person));
+    const content = await generateAiText(getAiConfig(), LINKEDIN_PROFILE_INSTRUCTIONS, JSON.stringify(person));
     return this.parseProfile(content);
   }
 
@@ -85,7 +85,7 @@ export class AiService {
     if (text.length > MAX_CV_TEXT_LENGTH) {
       throw new BadRequestException('The CV exceeds the limit of 50000 text characters');
     }
-    const content = await generateProfile(config, PROFILE_INSTRUCTIONS, text);
+    const content = await generateAiText(config, PROFILE_INSTRUCTIONS, text);
     const profile = await this.parseProfile(content);
     return {
       profile,

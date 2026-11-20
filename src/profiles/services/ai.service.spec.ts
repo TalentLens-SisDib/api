@@ -1,7 +1,7 @@
 import { BadGatewayException, BadRequestException, GatewayTimeoutException, ServiceUnavailableException } from '@nestjs/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getAiConfig } from './ai.config.js';
-import { generateProfile } from './ai.provider.js';
+import { generateAiText } from './ai.provider.js';
 import { AiService, MAX_CV_BYTES } from './ai.service.js';
 
 // Minimal real PDF: exercises extraction rather than mocking the PDF parser.
@@ -193,23 +193,23 @@ describe('CV import', () => {
 describe('provider errors', () => {
   it('does not expose provider error bodies', async () => {
     fetchMock.mockResolvedValue(new Response('test-secret and private CV', { status: 401 }));
-    await expect(generateProfile(getAiConfig(), 'instructions', 'cv')).rejects.toThrow('AI provider returned HTTP 401');
+    await expect(generateAiText(getAiConfig(), 'instructions', 'cv')).rejects.toThrow('AI provider returned HTTP 401');
   });
   it('maps network failures to 502', async () => {
     fetchMock.mockRejectedValue(new Error('private upstream details'));
-    await expect(generateProfile(getAiConfig(), 'instructions', 'cv')).rejects.toThrow('Unable to read a response');
+    await expect(generateAiText(getAiConfig(), 'instructions', 'cv')).rejects.toThrow('Unable to read a response');
   });
   it('maps aborted requests to 504', async () => {
     const signal = AbortSignal.abort(new DOMException('timeout', 'TimeoutError'));
     vi.spyOn(AbortSignal, 'timeout').mockReturnValue(signal);
     fetchMock.mockRejectedValue(signal.reason);
-    await expect(generateProfile(getAiConfig(), 'instructions', 'cv')).rejects.toBeInstanceOf(GatewayTimeoutException);
+    await expect(generateAiText(getAiConfig(), 'instructions', 'cv')).rejects.toBeInstanceOf(GatewayTimeoutException);
   });
   it.each([
     { choices: [] },
     { choices: [{ finish_reason: 'length', message: { content: JSON.stringify(profile) } }] },
   ])('rejects empty or truncated responses', async (response) => {
     fetchMock.mockResolvedValue(Response.json(response));
-    await expect(generateProfile(getAiConfig(), 'instructions', 'cv')).rejects.toBeInstanceOf(BadGatewayException);
+    await expect(generateAiText(getAiConfig(), 'instructions', 'cv')).rejects.toBeInstanceOf(BadGatewayException);
   });
 });

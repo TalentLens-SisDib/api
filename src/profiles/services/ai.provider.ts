@@ -23,8 +23,10 @@ function textBlocks(value: unknown): string {
   }).join('');
 }
 
-function buildRequest(config: AiConfig, instructions: string, text: string): ProviderRequest {
+function buildRequest(config: AiConfig, instructions: string, text: string, responseFormat?: unknown): ProviderRequest {
   const { baseUrl, apiKey, model } = config;
+  const structuredResponseFormat = responseFormat
+    ?? (config.provider === 'openrouter' ? PROFILE_RESPONSE_FORMAT : undefined);
   switch (config.provider) {
     case 'openai':
     case 'openrouter':
@@ -33,9 +35,9 @@ function buildRequest(config: AiConfig, instructions: string, text: string): Pro
         headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
         body: {
           model,
+          ...(structuredResponseFormat && { response_format: structuredResponseFormat }),
           ...(config.provider === 'openrouter' && {
-            response_format: PROFILE_RESPONSE_FORMAT,
-            // Do not allow endpoints to silently ignore the profile schema.
+            // Do not allow endpoints to silently ignore the requested schema.
             provider: { require_parameters: true },
           }),
           messages: [
@@ -87,8 +89,13 @@ function buildRequest(config: AiConfig, instructions: string, text: string): Pro
   }
 }
 
-export async function generateProfile(config: AiConfig, instructions: string, text: string): Promise<string> {
-  const request = buildRequest(config, instructions, text);
+export async function generateAiText(
+  config: AiConfig,
+  instructions: string,
+  text: string,
+  responseFormat?: unknown,
+): Promise<string> {
+  const request = buildRequest(config, instructions, text, responseFormat);
   const signal = AbortSignal.timeout(config.timeoutMs);
   try {
     const response = await fetch(request.url, {

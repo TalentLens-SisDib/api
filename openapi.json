@@ -847,6 +847,65 @@
         ]
       }
     },
+    "/job-openings/{id}/criteria-suggestions": {
+      "post": {
+        "operationId": "JobOpeningsController_generateCriteriaSuggestions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Job opening identifier (UUID)",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Generated criteria for recruiter review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobCriterionSuggestionsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The id or job description is invalid"
+          },
+          "401": {
+            "description": "Missing, invalid or expired token"
+          },
+          "403": {
+            "description": "The caller may not manage that job opening"
+          },
+          "404": {
+            "description": "No job opening exists with that id"
+          },
+          "502": {
+            "description": "The AI provider returned an invalid response or failed"
+          },
+          "503": {
+            "description": "The AI provider is not configured"
+          },
+          "504": {
+            "description": "The AI provider request timed out"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate evaluation criteria suggestions from a job description",
+        "tags": [
+          "job-openings"
+        ]
+      }
+    },
     "/job-openings/{id}/applications": {
       "get": {
         "operationId": "JobOpeningsController_findApplications",
@@ -4199,6 +4258,39 @@
             "maxLength": 1000
           }
         }
+      },
+      "JobCriterionSuggestionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ]
+      },
+      "JobCriterionSuggestionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobCriterionSuggestionDto"
+            },
+            "maxItems": 8
+          }
+        },
+        "required": [
+          "suggestions"
+        ]
       }
     }
   }

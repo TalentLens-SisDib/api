@@ -16,15 +16,18 @@ import {
 import {
   ApiBearerAuth,
   ApiBadRequestResponse,
+  ApiBadGatewayResponse,
   ApiCreatedResponse,
   ApiConflictResponse,
   ApiForbiddenResponse,
+  ApiGatewayTimeoutResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
+  ApiServiceUnavailableResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -40,8 +43,10 @@ import { JobOpeningCulturalFitResponseDto } from './dto/job-opening-cultural-fit
 import { CreateJobApplicationDto } from './dto/create-job-application.dto.js';
 import { AdvanceJobApplicationDto } from './dto/advance-job-application.dto.js';
 import { JobApplicationResponseDto } from './dto/job-application-response.dto.js';
+import { JobCriterionSuggestionsResponseDto } from './dto/job-criterion-suggestions-response.dto.js';
 import { UpdateJobApplicationStatusDto } from './dto/update-job-application-status.dto.js';
 import { JobApplicationService } from './services/job-application.service.js';
+import { JobCriterionSuggestionsService } from './services/job-criterion-suggestions.service.js';
 import { JobOpeningCreationService } from './services/job-opening-creation.service.js';
 import { JobOpeningDeleteService } from './services/job-opening-delete.service.js';
 import { JobOpeningEditService } from './services/job-opening-edit.service.js';
@@ -56,6 +61,7 @@ import { JobOpening } from '../generated/prisma/client.js';
 export class JobOpeningsController {
   constructor(
     private readonly jobOpeningFindService: JobOpeningFindService,
+    private readonly jobCriterionSuggestionsService: JobCriterionSuggestionsService,
     private readonly jobOpeningCreationService: JobOpeningCreationService,
     private readonly jobOpeningEditService: JobOpeningEditService,
     private readonly jobOpeningDeleteService: JobOpeningDeleteService,
@@ -118,6 +124,24 @@ export class JobOpeningsController {
   ): Promise<JobOpeningResponseDto> {
     const jobOpening = await this.jobOpeningFindService.findById(id);
     return this.transformJobOpening(jobOpening);
+  }
+
+  @Post(':id/criteria-suggestions')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate evaluation criteria suggestions from a job description' })
+  @ApiParam({ name: 'id', description: 'Job opening identifier (UUID)', format: 'uuid' })
+  @ApiOkResponse({ description: 'Generated criteria for recruiter review', type: JobCriterionSuggestionsResponseDto })
+  @ApiBadRequestResponse({ description: 'The id or job description is invalid' })
+  @ApiNotFoundResponse({ description: 'No job opening exists with that id' })
+  @ApiForbiddenResponse({ description: 'The caller may not manage that job opening' })
+  @ApiBadGatewayResponse({ description: 'The AI provider returned an invalid response or failed' })
+  @ApiServiceUnavailableResponse({ description: 'The AI provider is not configured' })
+  @ApiGatewayTimeoutResponse({ description: 'The AI provider request timed out' })
+  async generateCriteriaSuggestions(
+    @CurrentUser() requester: AuthPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<JobCriterionSuggestionsResponseDto> {
+    return this.jobCriterionSuggestionsService.generate(requester, id);
   }
 
   @Get(':id/applications')
